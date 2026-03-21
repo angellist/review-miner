@@ -1,0 +1,67 @@
+# Repositories to mine PR review threads from
+repos:
+  - name: venture
+    github_repo: "angellist/venture"
+    scopes:
+      - name: backend
+        path_prefix: "app/"
+        rules_target: "rules/venture-backend.md"
+      - name: graphql
+        path_prefix: "app/graphql/"
+        rules_target: "rules/venture-graphql.md"
+      - name: frontend
+        path_prefix: "client/"
+
+  - name: nova
+    github_repo: "angellist/nova"
+    scopes:
+      - name: components
+        path_prefix: "src/components/"
+        rules_target: "rules/nova-components.md"
+      - name: pages
+        path_prefix: "src/pages/"
+      - name: hooks
+        path_prefix: "src/hooks/"
+      - name: graphql
+        path_prefix: "src/graphql/"
+        rules_target: "rules/nova-graphql.md"
+
+# Default scope when none specified (must match a scope name, or "all")
+default_scope: "all"
+
+# Earliest PR merge date to fetch (for --full refresh)
+extraction_start_date: "2025-01-01"
+
+# Where the mined library lives — threads (per-repo), insights (shared), library (shared)
+library_dir: "code_insights"
+
+# Temporary working directory for batch files during mining runs
+tmp_dir: "tmp"
+
+# Where to write the markdown section files
+sections_output_dir: "rules/sections"
+
+# Root rules file for dedup when building scope-specific rules (optional)
+# rules_dedup_file: "rules/ROOT.md"
+
+# Filter out bot authors (GitHub login suffixes to exclude)
+bot_suffixes:
+  - "[bot]"
+  - "-bot"
+
+# Rate limit settings for GitHub API
+rate_limit:
+  min_remaining: 100
+  sleep_buffer_seconds: 5
+
+# PR Review Bot settings
+bot:
+  model: "claude-sonnet-4-20250514"
+  max_comments: 10
+  max_diff_bytes: 100000
+  skip_patterns:
+    - "*.lock"
+    - "*.generated.*"
+    - "*.snap"
+    - "vendor/*"
+    - "__generated__/*"

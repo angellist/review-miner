@@ -1,0 +1,50 @@
+name: PR Review Bot
+
+on:
+  workflow_call:
+    inputs:
+      repo_name:
+        description: "Repo name from al-pr-review config.yaml (e.g. venture, nova)"
+        required: true
+        type: string
+    secrets:
+      ANTHROPIC_API_KEY:
+        required: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    # Skip draft PRs and bot authors
+    if: >-
+      github.event.pull_request.draft == false &&
+      !endsWith(github.event.pull_request.user.login, '[bot]') &&
+      !endsWith(github.event.pull_request.user.login, '-bot')
+
+    steps:
+      - name: Checkout al-pr-review
+        uses: actions/checkout@v4
+        with:
+          repository: angellist/review-miner
+          ref: main
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install pyyaml anthropic
+
+      - name: Run review
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python -m bot.review \
+            --pr ${{ github.event.pull_request.number }} \
+            --repo ${{ inputs.repo_name }} \
+            --min-severity critical

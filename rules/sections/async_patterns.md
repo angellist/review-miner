@@ -1,0 +1,98 @@
+---
+scope: backend
+---
+
+# Async Patterns
+
+### Use find_by in Background Jobs
+
+- In Sidekiq jobs and mailers, use `find_by` instead of `find` for records that may be deleted between enqueue and execution
+- Guard against nil downstream or use an early return
+- Handle read-only or locked records gracefully (no-op or skip) rather than letting the job crash
+
+```ruby
+# Bad — crashes if record deleted between enqueue and execution
+record = DealShare.find(deal_share_id)
+
+# Good — graceful nil handling
+record = DealShare.find_by(id: deal_share_id)
+return unless record
+```
+
+_Sources: PR #20774, PR #17164_
+
+### Keyword Arguments for Mailer Methods
+
+- Changing positional arguments on mailer methods that use `deliver_later` is a deploy-time hazard
+- Sidekiq jobs enqueued before deploy will interpret old arguments under the new signature
+- Prefer keyword arguments for mailer methods, or create a new method when changing the interface
+
+_Sources: PR #17736_
+
+### Sidekiq JSON Serialization Boundary
+
+- Sidekiq serializes all job arguments through JSON via Redis — datetime objects become strings
+- Workers should always parse datetime strings unconditionally rather than adding defensive type checks
+- Align nullability handling between `perform` and internal methods using `T.must` at the boundary
+
+```ruby
+# Bad — redundant guard
+approved_at = approved_at.is_a?(String) ? DateTime.parse(approved_at) : approved_at
+
+# Good — Sidekiq guarantees it's a string
+approved_at = DateTime.parse(approved_at)
+```
+
+_Sources: PR #26488, PR #17924_
+
+### Avoid Arbitrary Delays Between Workers
+
+- Don't use hardcoded time delays to wait for another worker to finish
+- Run dependent operations sequentially in the same worker or use explicit completion callbacks
+- Hardcoded delays waste time when upstream finishes quickly and fail when it takes longer
+
+```ruby
+# Bad — fragile 2-minute guess
+UpdateStatsWorker.perform_async(id)
+DependentWorker.perform_in(2.minutes, id)
+
+# Good — sequential in one worker
+def perform(id)
+  update_stats(id)
+  run_dependent_logic(id)
+end
+```
+
+_Sources: PR #23248_
+
+### Throttle Bulk Job Enqueueing
+
+- When bulk-enqueuing jobs that hit external services, add randomized delays via `.wait()` to spread out execution
+- Throttle at the pickup stage, not the enqueue stage
+- For operations affecting many records, use bulk/batch job enqueueing rather than one job per record
+
+```ruby
+# Bad — all jobs execute simultaneously
+records.each { |r| MyWorker.perform_later(r.id) }
+
+# Good — staggered execution
+records.each { |r| MyWorker.set(wait: rand(1..5).seconds).perform_later(r.id) }
+```
+
+_Sources: PR #17965, PR #18925_
+
+### Use ErrorTracker in Background Jobs
+
+- In rescue blocks within background jobs and cron services, use `ErrorTracker.error(e)` rather than just logging
+- Error trackers provide deduplication, alerting, stack traces, and context that plain logging misses
+- Especially important in cron jobs where failures may go unnoticed
+
+_Sources: PR #26008_
+
+### Sidekiq Priority Conventions
+
+- Lower numbers = higher priority in Sidekiq
+- Jobs where the user is actively waiting (e.g., CSV generation, report compilation) should be priority 1
+- Background maintenance tasks should have higher scores (lower priority)
+
+_Sources: PR #20479_

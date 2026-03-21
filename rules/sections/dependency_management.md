@@ -1,0 +1,50 @@
+---
+scope: all
+---
+
+# Dependency Management
+
+### Migration Direction Over Local Consistency
+
+- When a library is being deprecated, use the replacement in all new code — even if surrounding code still uses the old library
+- Consistency with the migration direction takes precedence over consistency with legacy code in the same file
+
+```ts
+// Bad - using Effect for "consistency" with the file
+const result = Schema.decodeEither(MySchema)(data);
+
+// Good - team is migrating away from Effect
+const result = MySchema.safeParse(data);
+```
+
+_Sources: PR #6557_
+
+### Isolate Dependency Bumps
+
+- Put shared library version bumps (especially UI libraries like adapt) in their own PRs, separate from feature work
+- Bundling bumps with features makes it hard to isolate regressions and roll back cleanly
+
+_Sources: PR #6767_
+
+### Pin Docker Image Versions in CI
+
+- Always pin Docker image tags to a specific version in CI pipelines and process-compose configs
+- Using `latest` creates non-deterministic builds that can break at rest when upstream bumps a major version
+
+```ruby
+# Bad
+image: "nats:latest"
+
+# Good
+image: "nats:2.10.24"
+```
+
+_Sources: PR #7226_
+
+### Monorepo Dependency Versioning
+
+- When updating a shared package, bump it in all consuming workspaces at once — partial bumps cause lockfile churn and type mismatches
+- Use a standard command across workspaces: `cd <workspace> && pnpm up "@angellist/adapt*" --latest`
+- Peer dependencies in shared library packages must use semver ranges (`"55.x"`), not exact versions — pinning breaks consumers on different patch versions
+
+_Sources: PR #5063_

@@ -1,0 +1,131 @@
+---
+scope: all
+---
+
+# Code Clarity
+
+### Rename Variables When Semantics Change
+
+- When a variable's meaning changes, update the name immediately
+- In domains with overlapping terminology, include enough specificity to prevent confusion
+- Document legacy value equivalences with a comment explaining why they exist
+
+```typescript
+// Bad — name implies co-investors only, but now includes lead
+const numCoInvestors = allInvestors.length;
+
+// Good
+const totalInvestors = allInvestors.length;
+```
+
+_Sources: PR #4212, PR #4603, PR #5035_
+
+### Extract Magic Values into Named Helpers
+
+- Replace inline magic values with named constants or helper functions
+- A well-named function communicates intent better than a magic value with a comment
+
+```typescript
+// Bad — non-obvious encoding trick with a comment
+const overlay = "#FFFFFF99"; // 99 = 60% opacity
+
+// Good
+const overlay = hexWithOpacity("#FFFFFF", 0.6);
+```
+
+_Sources: PR #4372_
+
+### Use Explicit Display-Name Mappings
+
+- Don't derive display labels from API keys via string transformations (e.g., kebab-to-title-case)
+- Use a lookup table so display text is decoupled from API contracts
+- String transforms break for irregular casing or branding (e.g., "icapital", "AngelList")
+
+```typescript
+// Bad — fragile, breaks for irregular names
+const label = kebabToTitleCase(fundingKey);
+
+// Good
+const FUNDING_LABELS: Record<string, string> = {
+  "series-a": "Series A",
+  "icapital": "iCapital",
+};
+```
+
+_Sources: PR #4529, PR #4978_
+
+### Extract Repeated Checks into Predicate Functions
+
+- When the same conditional on an enum/state appears in multiple places, extract a named predicate
+- Centralizes the definition so it's easy to update when business logic changes
+- Apply the same principle to identifier construction used across code paths
+
+```typescript
+// Bad — duplicated in multiple files
+if (state === State.PASSED || state === State.REQUESTED) { ... }
+
+// Good
+function isAccreditationComplete(state: State): boolean {
+  return [State.PASSED, State.REQUESTED].includes(state);
+}
+```
+
+_Sources: PR #4533, PR #4897_
+
+### Prefer Early Returns Over Nested Conditionals
+
+- Negate conditions and return/throw early to keep the happy path at the lowest indentation
+- For multi-key entity lookups, try each key in priority order with early returns
+
+```typescript
+// Bad — deeply nested
+if (isCollisionError(err)) {
+  const resolved = await resolveCollision(entity);
+  if (resolved) {
+    return update(resolved);
+  } else {
+    throw new Error("Unresolved collision");
+  }
+} else {
+  throw err;
+}
+
+// Good
+if (!isCollisionError(err)) throw err;
+const resolved = await resolveCollision(entity);
+if (!resolved) throw new Error("Unresolved collision");
+return update(resolved);
+```
+
+_Sources: PR #4960, PR #5042_
+
+### Filter by Semantic Type, Not Hardcoded Keys
+
+- Match on type or category rather than specific key names
+- Type-based filtering is resilient to naming changes and decouples from upstream conventions
+
+```typescript
+// Bad — coupled to Venture's naming convention
+const sections = data.filter(s => s.key === "coinvestor_section_v2");
+
+// Good
+const sections = data.filter(s => s.type === "coinvestor");
+```
+
+_Sources: PR #4540_
+
+### Remove Dead Code and Impossible Guards
+
+- Remove commented-out code and stale comments before merging
+- Don't add defensive null checks for states that can't occur — they imply impossible states and confuse readers
+- Clean up redundant operations left from refactors (e.g., spreading a `.map()` result)
+
+```typescript
+// Bad — .map() already returns a new array
+const items = [...data.map(transform)];
+
+// Good
+const items = data.map(transform);
+```
+
+_Sources: PR #4288, PR #4566, PR #4960_

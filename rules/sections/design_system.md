@@ -1,0 +1,53 @@
+---
+scope: all
+---
+
+# Design System
+
+### Use Design Tokens Instead of Hard-Coded Values
+
+- Use design system tokens for font sizes, weights, and colors — never hard-code CSS values
+- When no exact token exists, express values in rem (consistent with the 16px base) rather than px
+- Cross-reference Figma variables to find the right token; if the token value is slightly off, use it anyway and fix upstream in the design system
+
+```tsx
+// Bad — hard-coded values diverge from the design system
+<th style={{ fontSize: '13px', fontWeight: 600, color: '#2e7d32' }}>
+
+// Good — tokens keep styling in sync globally
+<Box as="th" fontSize="text200" fontWeight="default" color={tokens.color.light.text.success}>
+```
+
+_Sources: PR #2762_
+
+### Compute Offsets from Token Values
+
+- Import the actual token value from `@angellist/design-tokens` and compute adjustments programmatically
+- Never reference a token value only in a comment while hard-coding a magic number
+
+```tsx
+// Bad — magic number with a stale comment
+// adapt spacing is 8px, subtract 1px for border
+paddingLeft: '7px'
+
+// Good — derived from the token, stays in sync
+const baseSpacing = remToPx(tokens.space[200])
+paddingLeft: `${baseSpacing - 1}px`
+```
+
+_Sources: PR #4559_
+
+### Use Your Own Styling Helpers Consistently
+
+- When you create a helper to enforce uniform styling (e.g., a `textCell` factory), use it for every instance in the same feature
+- Hand-rolling the same logic inline reintroduces the inconsistency the helper was designed to prevent
+
+```tsx
+// Bad — bypasses the helper you already wrote
+{ label: name, emphasis: 'bold', render: (v) => <Text fontWeight="bold">{v}</Text> }
+
+// Good — reuse the helper everywhere
+{ label: name, ...textCell({ emphasis: 'bold' }) }
+```
+
+_Sources: PR #2772_
