@@ -15,16 +15,40 @@ repos:
   - name: nova
     github_repo: "angellist/nova"
     scopes:
-      - name: components
-        path_prefix: "src/components/"
-        rules_target: "rules/nova-components.md"
-      - name: pages
-        path_prefix: "src/pages/"
-      - name: hooks
-        path_prefix: "src/hooks/"
-      - name: graphql
-        path_prefix: "src/graphql/"
-        rules_target: "rules/nova-graphql.md"
+      - name: frontend
+        path_prefix: "app/src/"
+      - name: backend
+        path_prefix: "graph/"
+      - name: backend
+        path_prefix: "capital-api/"
+      - name: testing
+        path_prefix: "nova-e2e/"
+      - name: frontend
+        path_prefix: "packages/"
+
+  - name: adapt
+    github_repo: "angellist/adapt"
+    scopes:
+      - name: components_core
+        path_prefix: "components-core/"
+      - name: components_apollo
+        path_prefix: "components-apollo/"
+      - name: design_tokens
+        path_prefix: "design-tokens/"
+      - name: lib
+        path_prefix: "lib/"
+
+  - name: infra
+    github_repo: "angellist/infra"
+    scopes:
+      - name: pulumi
+        path_prefix: "pulumi/"
+      - name: packages
+        path_prefix: "packages/"
+      - name: docker
+        path_prefix: "docker/"
+      - name: scripts
+        path_prefix: "scripts/"
 
 # Default scope when none specified (must match a scope name, or "all")
 default_scope: "all"
