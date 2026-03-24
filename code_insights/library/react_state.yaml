@@ -1,0 +1,413 @@
+topic: react_state
+scope: frontend
+
+practices:
+  - title: "Prefer Event Handlers Over useEffect for User Actions"
+    content: |
+      - Use explicit event handlers for user-driven logic (close, submit, reset), not useEffect
+      - Reserve useEffect for synchronizing with external systems, not responding to user actions
+      - Effect-based tracking breaks when component identity stays the same but logical context changes
+
+      ```tsx
+      // Bad — useEffect fires on mount/unmount, misses context switches
+      useEffect(() => {
+        trackOpen(itemId);
+        return () => trackClose(itemId);
+      }, [itemId]);
+
+      // Good — explicit handler captures the right semantic boundary
+      const handleClose = () => {
+        trackClose(itemId);
+        onClose();
+      };
+      ```
+    sources: [5479, 4621, 4621]
+
+  - title: "Functional setState Updater to Reduce useEffect Dependencies"
+    content: |
+      - Use `setState(prev => ...)` when a useEffect reads and updates the same state
+      - This removes the state variable from the dependency array, preventing infinite loops
+      - Check all useEffects in a component for the same pattern
+
+      ```tsx
+      // Bad — selectedColumns in deps causes unnecessary re-runs
+      useEffect(() => {
+        setSelectedColumns(selectedColumns.filter(c => columns.includes(c)));
+      }, [columns, selectedColumns]);
+
+      // Good — functional updater removes the dependency
+      useEffect(() => {
+        setSelectedColumns(prev => prev.filter(c => columns.includes(c)));
+      }, [columns]);
+      ```
+    sources: [3437, 3437, 4073]
+
+  - title: "Don't Omit Hook Dependencies Without Verifying"
+    content: |
+      - Never remove a dependency based on assumed re-render risk — investigate first
+      - The re-render culprit may be a different variable than the one you want to omit
+      - Missing dependencies cause stale closures and subtle bugs
+      - Be especially careful with async-loaded values that start as nil — a missing dep means the memo computes with stale nil and never recomputes when data arrives
+      - When a useMemo dependency is derived from another value, depend on the source value and compute the derivation inside the memo callback
+    sources: [5087, 23716, 25946]
+
+  - title: "React Hook Form: Async Default Values"
+    content: |
+      - `defaultValues` only applies on first render — late updates are silently ignored
+      - Gate rendering on data availability, or use `reset()` in a useEffect when source data changes
+      - For a single async field, use `form.setValue` in a useEffect rather than skeletonizing the whole form
+
+      ```tsx
+      // Bad — form mounts with empty defaults, async update is ignored
+      const form = useForm({ defaultValues: {} as Payload });
+      useEffect(() => { /* payload arrived but fields already initialized */ }, [payload]);
+
+      // Good — gate rendering until data is ready
+      if (!payload) return <Skeleton />;
+      return <Form defaultValues={payload} />;
+
+      // Good — reset form when data changes
+      useEffect(() => { form.reset(payload); }, [payload]);
+      ```
+    sources: [2969, 2629]
+
+  - title: "React Hook Form: Use Built-in Bindings"
+    content: |
+      - Set the `name` prop on form-aware components for automatic state binding
+      - Avoid manual `watch`/`setValue`/`onChange` when declarative binding works
+      - Use `useFieldArray` for arrays instead of manual spread operations
+      - Use `useFormContext()` instead of prop-drilling the form object
+      - Import form-aware components from `@angellist/adapt-react-hook-form`, not the base `@angellist/adapt` — base components lack register/control bindings and fail silently
+      - Use form-aware Button components; they automatically handle disabled/loading states from form state
+
+      ```tsx
+      // Bad — manual state sync + wrong import
+      import { Select } from '@angellist/adapt';
+      const val = form.watch("field");
+      <Select value={val} onSelectionChange={(v) => form.setValue("field", v)} />
+
+      // Good — declarative binding via name prop
+      import { Select, Button } from '@angellist/adapt-react-hook-form';
+      <Select name="field" />
+      <Button type="submit" /> {/* disabled/loading handled automatically */}
+      ```
+    sources: [2895, 3681, 3811, 19424, 23640]
+
+  - title: "React Hook Form: Default Values and Reset"
+    content: |
+      - Default string fields to `''` not `undefined` — controlled inputs behave differently with each
+      - Derive defaults from the zod schema's defaults, not hardcoded in components
+      - `shouldUnregister` only works when fields truly unmount from DOM, not when hidden via `isOpen`
+      - For creation modals, remount the form on open (e.g., key prop) so fields reset
+    sources: [2696, 3550, 5984, 3786]
+
+  - title: "Shared Hooks: Internalize Error Handling"
+    content: |
+      - Wrap mutations inside hooks that toast on failure internally
+      - Expose only the happy-path callback to callers (e.g., `onEntityFinalized: VoidFunction`)
+      - Don't force every consumer to handle error states individually
+    sources: [4967]
+
+  - title: "Context vs Prop Drilling"
+    content: |
+      - Read shared data from context hooks instead of prop drilling through intermediate layers
+      - Design contexts to be self-contained — consolidate missing fields rather than layering overlapping contexts
+      - Don't pass context values through intermediate data structures as nullable parameters
+      - Remove unused fields from context types promptly
+
+      ```tsx
+      // Bad — prop drilling when context is available
+      function Child({ account }: { account?: Account }) { ... }
+
+      // Good — read from context directly
+      function Child() {
+        const { account } = useDashboardContext();
+      }
+      ```
+    sources: [2943, 2938, 2668, 4967]
+
+  - title: "Avoid Undefined as Loading Sentinel"
+    content: |
+      - Don't overload `undefined` to mean "loading" — it's ambiguous with "no data"
+      - Expose an explicit `isLoading` boolean from hooks
+      - Callers should distinguish loading from empty without guessing
+    sources: [5400]
+
+  - title: "Mutable Default State Objects"
+    content: |
+      - Never use a shared mutable object literal as a default/reset value
+      - Mutations to the "active" copy propagate back to the shared default, corrupting resets
+      - Use a factory function that returns a fresh object each time
+
+      ```tsx
+      // Bad — shared reference gets mutated
+      const DEFAULT_FILTERS = { selectedKeys: [] };
+      const [filters, setFilters] = useState(DEFAULT_FILTERS);
+
+      // Good — factory prevents shared-reference mutation
+      const defaultFilters = () => ({ selectedKeys: [] });
+      const [filters, setFilters] = useState(defaultFilters);
+      ```
+    sources: [5778]
+
+  - title: "Apollo Cache: Mutations and Refetching"
+    content: |
+      - Always include matching variables in `refetchQueries` — mismatched variables create separate cache entries
+      - Return updated data from the mutation response instead of manually refetching via Apollo client
+      - Don't await independent queries after a mutation unless the next render needs them
+
+      ```tsx
+      // Bad — variables don't match, UI shows stale data
+      refetchQueries: [{ query: GET_ITEMS }]
+
+      // Good — match the original query's variables
+      refetchQueries: [{ query: GET_ITEMS, variables: { fundId } }]
+      ```
+    sources: [5663, 6150, 5658]
+
+  - title: "Avoid Unnecessary Memoization"
+    content: |
+      - Verify a function actually causes instability before wrapping in useMemo/useCallback
+      - Don't blindly wrap event handlers in useCallback — only needed when the callback is a dependency of another hook or passed to a memoized child
+      - Reserve useMemo/useCallback for expensive calculations, large lists, or components that genuinely re-render too often; for trivial computations, inline is cleaner
+      - Apollo's `refetch` and similar library functions are already stable
+      - Don't use `JSON.stringify` on large objects as a dependency comparison hack
+      - If you can't express deps as primitives or stable refs, reconsider whether memoization is needed
+    sources: [7273, 4763, 20493, 24862, 17898]
+
+  - title: "Declarative useQuery Over Imperative useLazyQuery"
+    content: |
+      - Prefer `useQuery` with `skip` over `useLazyQuery` with manual state when the query runs reactively
+      - This reduces state variables and makes data flow more predictable
+
+      ```tsx
+      // Bad — manual state + imperative trigger
+      const [exec, { data }] = useLazyQuery(QUERY);
+      useEffect(() => { if (workflowId) exec({ variables: { workflowId } }); }, [workflowId]);
+
+      // Good — declarative with skip
+      const { data } = useQuery(QUERY, {
+        variables: { workflowId },
+        skip: !workflowId,
+      });
+      ```
+    sources: [4897]
+
+  - title: "Reuse Existing Libraries for URL State"
+    content: |
+      - Check for existing URL query parameter libraries (e.g., nuqs) before building custom solutions
+      - nuqs provides useState-like ergonomics backed by URL search params
+      - Consistent URL-state behavior across the app reduces bugs
+    sources: [7317]
+
+  - title: "Mirror Existing UI Patterns for Transient State"
+    content: |
+      - When implementing popovers, modals, or filters with transient state, check existing patterns first
+      - Consistency across the app matters more than either design choice in isolation
+      - Consider whether state should persist or reset on close based on the interaction type
+    sources: [3411]
+
+  - title: "Lift Queries Up, Pass Data Down"
+    content: |
+      - Don't use useState as a child-to-parent communication channel for fetchable data
+      - Move the query to the parent and pass results as props — follows React's top-down data flow
+      - Leave a TODO when working around component limitations with manual state management
+
+      ```tsx
+      // Bad — child fetches and pushes count up via callback
+      function Child({ onCount }: { onCount: (n: number) => void }) {
+        const { data } = useQuery(QUERY);
+        useEffect(() => { onCount(data.count); }, [data]);
+      }
+
+      // Good — parent owns the query
+      function Parent() {
+        const { data } = useQuery(QUERY);
+        return <Child count={data.count} />;
+      }
+      ```
+    sources: [6845, 5938]
+
+  - title: "Never Mutate State Objects in Updaters"
+    content: |
+      - For Set and Map state, always clone first (`new Set(prev)`) before modifying
+      - Returning the same reference silently skips the re-render — React uses reference equality
+      - This applies to all mutable state objects (arrays, Sets, Maps, plain objects)
+
+      ```tsx
+      // Bad — mutates and returns same reference, no re-render
+      setSelected(prev => { prev.add(id); return prev; });
+
+      // Good — new reference triggers re-render
+      setSelected(prev => { const next = new Set(prev); next.add(id); return next; });
+      ```
+    sources: [22982]
+
+  - title: "Cancel Async Operations in useEffect Cleanup"
+    content: |
+      - Async operations inside useEffect must be cancellation-aware
+      - Use a cleanup flag pattern: set a boolean in the cleanup return, check it in the async callback
+      - Prevents stale async callbacks from running after unmount or dependency changes
+      - For `requestAnimationFrame`, cancel via `cancelAnimationFrame(rafIdRef.current)` in the cleanup — even if it rarely fires, it prevents stale animation callbacks against unmounted components
+
+      ```tsx
+      useEffect(() => {
+        let cancelled = false;
+        fetchData().then(data => {
+          if (!cancelled) setState(data);
+        });
+        return () => { cancelled = true; };
+      }, [deps]);
+      ```
+    sources: [22982, 2538]
+
+  - title: "Reset Modal Form State on Close"
+    content: |
+      - Always reset form state when a modal closes, not just on successful submit
+      - Users may open, fill fields, close without submitting, and reopen
+      - Use `form.reset` in a `useEffect` keyed on `isOpen`, or use a key-based remount
+
+      ```tsx
+      // Good — reset on open/close transition
+      useEffect(() => { if (isOpen) form.reset(); }, [isOpen]);
+
+      // Good — key-based remount forces fresh state
+      <Modal isOpen={isOpen}><Form key={isOpen ? 'open' : 'closed'} /></Modal>
+      ```
+    sources: [22511]
+
+  - title: "React Hook Form: Clear Dependent Fields on Change"
+    content: |
+      - When a controlling field changes to hide dependent fields, clear their values
+      - RHF retains registered values even after input unmounts — stale data silently persists in submissions
+      - Add an `onChange` callback to the controlling field that clears hidden dependents
+
+      ```tsx
+      // Bad — hidden field's value still submitted
+      {showName && <Input name="name" />}
+
+      // Good — clear on category change
+      <Select name="category" onChange={(v) => {
+        if (!requiresName(v)) form.setValue("name", "");
+      }} />
+      ```
+    sources: [18133]
+
+  - title: "Derive State Instead of Duplicating It"
+    content: |
+      - If a value can be computed from existing state, use `useMemo` rather than a separate useState
+      - Redundant state creates sync bugs and increases complexity
+      - Trust `formState.isDirty` for change detection rather than building parallel tracking
+
+      ```tsx
+      // Bad — redundant state to keep in sync
+      const [selectedId, setSelectedId] = useState(null);
+      const [selectedPeriod, setSelectedPeriod] = useState(null);
+
+      // Good — derive from single source of truth
+      const [selectedId, setSelectedId] = useState(null);
+      const selectedPeriod = useMemo(
+        () => periods.find(p => p.id === selectedId),
+        [periods, selectedId]
+      );
+      ```
+    sources: [19686, 17889]
+
+  - title: "Custom Hooks Must Return Stable References"
+    content: |
+      - Wrap returned functions with `useCallback` so consumers using them in dependency arrays don't trigger unnecessary re-renders
+      - When a callback prop is used as a `useEffect` dependency, verify it's memoized in the parent
+      - An unmemoized callback creates a new reference every render, causing effects to fire continuously
+    sources: [26447, 19686]
+
+  - title: "Context for Shared UI State"
+    content: |
+      - When multiple components need to share UI state (filters, selections, view modes), use React Context
+      - A standalone hook without Context creates independent state per consumer
+      - Context holds state horizontally across the component tree, surviving re-mounts like tab switches
+
+      ```tsx
+      // Bad — each consumer gets independent state
+      function useFilters() { return useState(defaults); }
+
+      // Good — shared via context
+      const FilterContext = createContext<FilterState>(null);
+      function useFilters() {
+        const ctx = useContext(FilterContext);
+        if (!ctx) throw new Error('useFilters must be within FilterProvider');
+        return ctx;
+      }
+      ```
+    sources: [18181, 25154]
+
+  - title: "Type Form Hooks and Context"
+    content: |
+      - Always provide generic type parameters to `useFormContext<T>()`, `useForm<T>()`, and similar typed hooks
+      - Without the type parameter, all field accesses are untyped and TypeScript cannot catch mismatched field names
+      - Avoid `as` type assertions for component props — derive types using `React.ComponentProps<typeof Component>`
+    sources: [25351, 24832]
+
+  - title: "Hoist Static Helpers Outside Components"
+    content: |
+      - Helper functions that don't depend on component state or props should be defined outside the component
+      - Inline helpers are recreated every render, adding unnecessary allocations
+      - Only keep functions inside the component when they genuinely need access to hooks, state, or props
+    sources: [19731]
+
+  - title: "Document Unavoidable Type Hacks"
+    content: |
+      - When forced to use type casts due to library limitations (e.g., react-hook-form TS2589), add a code comment explaining why
+      - Without the comment, future developers will try to "fix" it and waste time rediscovering the issue
+    sources: [26148]
+
+  - title: "Use Project-Level Hooks Over Custom Implementations"
+    content: |
+      - Before implementing debounce, throttle, or other utility patterns, check for existing project-level hooks
+      - Custom implementations add complexity (cleanup, refs, edge cases) that project hooks already handle correctly
+      - Use `useDebouncedState` for input debouncing instead of manual `_.debounce` + `useRef`
+
+      ```tsx
+      // Bad — manual debounce adds cleanup complexity
+      const debounced = useRef(_.debounce(setFilter, 300));
+      <Input onChange={(v) => debounced.current(v)} />
+
+      // Good — project hook handles it
+      const [filter, setFilter] = useDebouncedState('', 300);
+      <Input onChange={setFilter} />
+      ```
+    sources: [25946]
+
+  - title: "Use useState Lazy Initializer for One-Time Setup"
+    content: |
+      - Use `useState(() => expensiveCall())` when the initial value should only be computed once
+      - Passing a function reference directly (`useState(createPromise)`) may re-invoke it on re-renders if its signature matches the initializer pattern
+      - The lazy form makes single-initialization intent explicit
+
+      ```tsx
+      // Bad — may re-execute on re-renders
+      const [promise] = useState(getTurnstileLoadPromise);
+
+      // Good — lazy initializer runs only on mount
+      const [promise] = useState(() => getTurnstileLoadPromise());
+      ```
+    sources: [22982]
+
+  - title: "React Hook Form: Prefer Controller for Individual Inputs"
+    content: |
+      - Prefer `<Controller>` for individual input components — the ref enables programmatic focus on fields with validation errors on submit
+      - For compound components that render multiple inputs (e.g., `<Address />`), the non-Controller approach is appropriate — there's no single element to focus
+    sources: [2075]
+
+  - title: "ADAPT Overlay: Consistent isOpen/onClose Convention"
+    content: |
+      - ADAPT modal/overlay components must expose `isOpen: boolean` paired with `onClose: (isOpen: boolean) => void`
+      - This enables single-setter wiring: `<Modal isOpen={isOpen} onClose={setIsOpen} />`
+      - Avoid splitting into `onDismiss`/`onDismissed` variants — they break this ergonomic pattern unless there's a distinct semantic reason
+    sources: [2451]
+
+  - title: "Internalize Memoization for Builder-Pattern Props"
+    content: |
+      - When a prop's natural usage creates new object references each render (builder chains, inline literals), internalize memoization inside the component/hook
+      - Externalizing the requirement is a footgun: callers using `useMemo` with the builder as a dependency still re-run on every render
+      - Document this decision with a code comment so future maintainers understand why the hook handles memoization itself
+    sources: [2469]

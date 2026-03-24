@@ -1,0 +1,509 @@
+topic: auth_permissions
+scope: all
+
+practices:
+  - title: "Every Resolver Needs an Auth Check"
+    content: |
+      - Every GraphQL query and mutation that accesses scoped data must include an explicit authorization check (e.g., `authz.instance.isMember`)
+      - Even read-only resolvers need permission validation — missing checks are silent security holes
+      - If the permission system isn't ready, add a TODO with a tracked Linear ticket so it doesn't get lost
+
+      ```typescript
+      // Bad — no auth check on resolver
+      builder.queryField("bankAccounts", (t) =>
+        t.field({ resolve: (_, args, ctx) => fetchAccounts(args) })
+      );
+
+      // Good — explicit auth scope
+      builder.queryField("bankAccounts", (t) =>
+        t.withAuth({ user: true }).field({
+          authScopes: { isMember: true },
+          resolve: (_, args, ctx) => fetchAccounts(ctx.account, args),
+        })
+      );
+      ```
+    sources: [2698, 5409, 6265, 2922, 6150]
+
+  - title: "Use Framework Auth Mechanisms Over Inline Checks"
+    content: |
+      - Prefer `authScopes` and `t.withAuth()` over manual permission checks in resolver bodies
+      - `t.withAuth({ user: true })` types the context as `UserContext` with non-nullable account — no runtime null checks needed
+      - Before adding new auth helper utilities, verify the existing framework mechanism doesn't already cover the case
+      - Copy-pasting resolver code commonly introduces redundant or incorrect inline auth logic
+
+      ```typescript
+      // Bad — manual null check duplicating what withAuth provides
+      resolve: (_, args, ctx) => {
+        if (!ctx.account) throw new AuthError();
+        return doThing(ctx.account);
+      }
+
+      // Good — framework handles it at the type level
+      t.withAuth({ user: true }).field({
+        resolve: (_, args, ctx) => doThing(ctx.account), // account guaranteed non-null
+      })
+      ```
+    sources: [3129, 3528, 4136]
+
+  - title: "Match Permission Level to Operation Type"
+    content: |
+      - Read endpoints check `canView`, write endpoints check `canEdit`
+      - A `canView` guard on a mutation is a security gap — read-only users can modify data
+      - A `canEdit` guard on a read endpoint is overly restrictive — users who should see data get blocked
+
+      ```typescript
+      // Bad — wrong permission level for a write operation
+      if (!await hasPermission(ctx.account, resource, "canView")) throw new ForbiddenError();
+      await resource.update(args);
+
+      // Good — write operation requires canEdit
+      if (!await hasPermission(ctx.account, resource, "canEdit")) throw new ForbiddenError();
+      await resource.update(args);
+      ```
+    sources: [6289, 6429]
+
+  - title: "Scope Auth Checks to the Actual Resource"
+    content: |
+      - Don't reuse a broad product-level permission (e.g., "can view data rooms") for a narrower context (e.g., entity-specific data rooms)
+      - Accept the specific parent resource ID and derive child resources from it
+      - When a permission function covers multiple entity types, make the scope explicit via parameters rather than applying blanket checks
+      - Start authorization rules at the broadest applicable scope; only create resource-specific rules when actual resource-specific logic exists
+
+      ```typescript
+      // Bad — blanket permission check ignoring entity type
+      canManageDataRooms(account, org);
+
+      // Good — scoped check with explicit entity type
+      canManageDataRooms(account, org, { isEntityDataRoom: true });
+      ```
+    sources: [2629, 2649, 2690, 6868]
+
+  - title: "Enforce Auth Server-Side, Not in the Frontend"
+    content: |
+      - Access restrictions must be enforced at the backend/API layer — frontend checks are easily bypassed
+      - Business logic filtering (archived records, inactive entities) belongs in the API, not the UI
+      - APIs should exclude archived/deleted records by default with an opt-in flag for admin UIs that need them
+      - Filter out soft-deleted and inactive records at the schema/resolver entry point so internal utilities can't bypass it
+      - When a flag controlling backend behavior is always true or server-determined, set it server-side — don't accept it from the frontend where clients can send incorrect values
+
+      ```typescript
+      // Bad — frontend filtering archived members
+      const active = members.filter(m => !m.archivedAt);
+
+      // Good — API excludes archived by default
+      // resolver
+      const members = await fetchMembers(orgId, { includeArchived: false });
+      ```
+    sources: [5201, 5443, 2922, 20280]
+
+  - title: "Never Expose Internal Models to External Clients"
+    content: |
+      - Internal/admin-side data models carry relation graphs that can leak sensitive data to external clients
+      - Create purpose-built, scoped models for cross-boundary exposure (e.g., `RecipientDirectoryEntity` for LP views)
+      - When building recipient/LP-facing views, restricted models should expose only the fields that audience needs
+
+      ```typescript
+      // Bad — reusing GP-side model for LP client
+      builder.objectType(DirectoryEntity, { ... }); // LPs can traverse all relations
+
+      // Good — purpose-built LP model
+      builder.objectType(RecipientDirectoryEntity, {
+        fields: (t) => ({
+          name: t.exposeString("name"),
+          type: t.exposeString("type"),
+          // No sensitive relations exposed
+        }),
+      });
+      ```
+    sources: [6329, 6328]
+
+  - title: "Permission Layer Architecture"
+    content: |
+      - Place authorization checks near the query/view layer (GraphQL resolvers) where you have full context on user intent
+      - The data layer can define permission-fetching functions (`hasPermission`) — the antipattern is the data layer *enforcing* authz (checking and throwing)
+      - Keep permission queries in dedicated `hasPermission` functions rather than scattering Prisma auth queries across services
+      - Inline permission checks in WHERE clauses rather than fetching IDs first and filtering in a second query (N+1 risk)
+
+      ```typescript
+      // Bad — permission logic scattered in service
+      const allowed = await prisma.permission.findFirst({
+        where: { accountId, entityId, level: "edit" }
+      });
+
+      // Good — reuse data-layer hasPermission, inline in query
+      const items = await prisma.entity.findMany({
+        where: {
+          ...filters,
+          ...checkAccountToOrgEntityExp(accountId),
+        },
+      });
+      ```
+    sources: [3129, 6328, 6331, 6868]
+
+  - title: "UI Permission Gating"
+    content: |
+      - Check permission flags inline at the render site — don't rely on `useEffect` to redirect or hide unauthorized UI
+      - Effects run asynchronously, leaving windows where restricted actions are briefly visible or actionable
+      - Use authoritative boolean flags (e.g., `isAdmin`) for role checks rather than inferring from email domains
+
+      ```tsx
+      // Bad — effect-based gating with race condition
+      useEffect(() => {
+        if (!canInvite) setSelectedId(null);
+      }, [canInvite]);
+
+      // Good — inline permission check
+      {canInvite && <InviteAction memberId={selectedId} />}
+      ```
+    sources: [6221, 5601]
+
+  - title: "Default to Restrictive Access"
+    content: |
+      - When creating access-controlled resources (links, tokens, shares), default to the most restrictive access level
+      - When building auth contexts that aggregate accounts/roles, filter by the specific permission level required — don't load all accounts unfiltered
+      - Never allow an unscoped "fetch all" path in regular user-facing routes; admin access needs a dedicated endpoint
+
+      ```typescript
+      // Bad — defaults to public access
+      createAccessLink({ authLevel: "public", ...opts });
+
+      // Good — requires authentication by default
+      createAccessLink({ authLevel: "email", ...opts });
+      ```
+    sources: [3874, 3922, 6150]
+
+  - title: "Hierarchical Permission Invariants"
+    content: |
+      - Understand normalization invariants before setting permissions at multiple hierarchy levels
+      - Setting permissions on both a parent folder and its child files can cause normalizers to silently strip the child permissions
+      - Always add tests for permission-setting logic, especially when the system enforces structural constraints like "no overlapping parent/child permissions"
+    sources: [3705]
+
+  - title: "Admin vs User-Facing Auth Context"
+    content: |
+      - When building admin tools that call existing mutations, audit the business-rule guards — restrictions designed for user-facing flows often don't apply to admin contexts
+      - Scope guards by context (e.g., org type) rather than applying them universally
+      - Extract magic numbers in permission logic into named constants with comments explaining the domain meaning
+    sources: [4373, 2972]
+
+  - title: "Every Controller Action Needs Pundit Authorization"
+    content: |
+      - Every Rails controller action that accepts a resource identifier must call `authorize` or `pundit_authorize!`
+      - Unauthenticated endpoints leak entity existence and relationship info (enumeration vulnerability) even if the UI restricts navigation
+      - Even "preview" or internal-only endpoints can be exploited if they skip authorization
+
+      ```ruby
+      # Bad — no auth check, leaks syndicate info via slug
+      def show
+        @syndicate = Syndicate.find_by_campaign_id(params[:id])
+        render json: @syndicate
+      end
+
+      # Good — explicit Pundit check
+      def show
+        @syndicate = Syndicate.find_by_campaign_id(params[:id])
+        authorize(@syndicate, :manage?)
+        render json: @syndicate
+      end
+      ```
+    sources: [17443, 19911]
+
+  - title: "Don't Reuse Pundit Policies Across Different Actions"
+    content: |
+      - Pundit policy methods encode business rules specific to their original action — reusing them for a different action can incorrectly block or allow users
+      - A permissive policy for UI display can become an IDOR vulnerability when reused for document downloads
+      - Split policies by access level when the same resource has different authorization needs
+
+      ```ruby
+      # Bad — reusing invest? policy for pass/decline
+      pundit_authorize!(closing, :invest?)  # blocks users who can't invest but should be able to decline
+
+      # Good — separate policy per action
+      pundit_authorize!(closing, :pass?)
+
+      # Bad — reusing permissive view policy for downloads
+      def view_agreement?
+        return true if !record.active?  # intentionally permissive for cancelled pages
+      end
+
+      # Good — split into strict download policy and permissive UI policy
+      def download_agreement?  # strict: checks actual membership
+      def view_cancelled_page? # permissive: allows viewing cancelled landing
+      ```
+    sources: [18231, 26503]
+
+  - title: "Revoke All Permission Flags on Role Removal"
+    content: |
+      - When removing or downgrading a user's role, ensure all associated permission flags are also reverted
+      - Orphaned permissions after a role change create security gaps where users retain capabilities they should no longer have
+      - When code handles permission-resetting edge cases (e.g., sponsor to regular member), make the intent explicit via a named helper like `resetNonViewerPermissions`
+    sources: [17844, 16965]
+
+  - title: "Use Roles, Not Hardcoded Identity Maps"
+    content: |
+      - Avoid hardcoded user-identity constants (email-to-ID maps) for permission checks — they don't scale and require manual updates
+      - Model permissions as dedicated roles so authorization logic is declarative and maintainable
+      - When existing roles are too broad, create a new granular role rather than maintaining a hardcoded allowlist
+
+      ```ruby
+      # Bad — hardcoded email-to-ID map
+      TAX_PRO_IDS = { "alice@example.com" => 123, "bob@example.com" => 456 }
+
+      # Good — dedicated role
+      user.has_role?(:angellist_tax_pro)
+      ```
+    sources: [20398]
+
+  - title: "Name Auth Methods to Reflect Their Auth Role"
+    content: |
+      - Methods that perform authorization should be named to reflect it — a method named `load_*` that secretly checks permissions surprises callers
+      - Prefer the codebase's established auth pattern (Pundit policies) over ad-hoc inline auth checks in controllers
+      - Methods that intentionally raise on auth failure should use `authorize_*!` or `assert_*!` naming
+
+      ```ruby
+      # Bad — name hides auth responsibility
+      def load_invest_account!
+        account = InvestAccount.find(params[:id])
+        raise ForbiddenError unless account.user == current_user
+        account
+      end
+
+      # Good — name reveals auth, uses framework
+      account = InvestAccount.find(params[:id])
+      authorize_invest_account!(account)
+      ```
+    sources: [20769]
+
+  - title: "Security Feature Toggles Must Default to Enforced"
+    content: |
+      - When using env vars to toggle security features for local development, the default (missing/blank) path must enforce the security control
+      - `return if env_var.blank?` is dangerous — it disables the feature in production where the var is absent
+      - Prefer explicit opt-out (`return if env_var == 'skip'`) or scope to `Rails.env.development?`
+      - When configuring reverse proxy or ingress rules, whitelist specific paths rather than broad prefixes that could expose internal pages
+
+      ```ruby
+      # Bad — silently skips 2FA in production
+      return if ENV['TWO_FACTOR_IN_DEV'].blank?
+
+      # Good — enforces by default, only skips when explicitly opted out in dev
+      return if Rails.env.development? && ENV['SKIP_TWO_FACTOR'] == 'true'
+      ```
+    sources: [20977, 24812, 24036, 25557]
+
+  - title: "Use Factory Pattern for Access-Level Variants"
+    content: |
+      - When a presenter or serializer accumulates conditionals based on access level, extract distinct subclasses behind a factory
+      - Each variant's behavior is explicit, easier to test, and easier to maintain than scattered inline conditionals
+      - Keep presenters thin — push authorization logic into Pundit policies and domain logic into service objects
+
+      ```ruby
+      # Bad — conditionals sprinkled throughout presenter
+      def investment_amount
+        return nil unless @can_view_details
+        @investment.amount
+      end
+
+      # Good — factory returns appropriate subclass
+      CombinedFundInvestmentFactory.build(investment, access_level:)
+      # Returns CombinedFundInvestment or LimitedCombinedFundInvestment
+      ```
+    sources: [22581, 23560]
+
+  - title: "Handle Auth Across Multiple Request Contexts"
+    content: |
+      - Controllers that serve requests from multiple entry points (direct API, wedge/embedded, third-party proxy) must not assume session availability
+      - Make session-dependent auth logic optional or use an alternative mechanism so the controller works across all request contexts
+      - When adding new methods to a controller, follow the auth check pattern already established in that file (e.g., `current_user` with guard clause)
+    sources: [21746, 21608]
+
+  - title: "Prefer Allowlists Over Blocklists for Field Exposure"
+    content: |
+      - When controlling which fields are exposed in registries or APIs, use an allowlist of permitted fields — not a blocklist of excluded ones
+      - Blocklists are dangerous because new fields are exposed by default; the engineer adding a field may not know about downstream exposure
+      - When fetching data for external consumption, select only the allowlisted fields rather than fetching all and filtering after
+
+      ```ruby
+      # Bad — blocklist, new fields exposed by default
+      BLOCKED_FIELDS = [:ssn, :bank_account]
+      registry.fields.reject { |f| BLOCKED_FIELDS.include?(f.name) }
+
+      # Good — allowlist, new fields must be explicitly opted in
+      ALLOWED_FIELDS = [:name, :email, :role]
+      registry.fields.select { |f| ALLOWED_FIELDS.include?(f.name) }
+      ```
+    sources: [19751]
+
+  - title: "Verify Compliance Prerequisites at Point of Action"
+    content: |
+      - Payment and closing operations must explicitly verify all compliance prerequisites (accreditation, KYC, AML) before execution
+      - Don't assume upstream code already validated compliance — check at the point of financial action in the service object
+      - Missing compliance checks on execution paths can result in regulatory violations even if the UI prevents non-compliant users from reaching that flow
+
+      ```ruby
+      # Bad — assumes upstream validated compliance
+      def execute_closing!(closing)
+        process_payment(closing)
+      end
+
+      # Good — explicit compliance gate
+      def execute_closing!(closing)
+        raise ComplianceError unless closing.investor.accredited? && closing.investor.kyc_approved?
+        process_payment(closing)
+      end
+      ```
+    sources: [20179]
+
+  - title: "Idempotency Guards for State-Mutating Endpoints"
+    content: |
+      - State-mutating endpoints (finalize, submit, approve) must include server-side idempotency guards that reject duplicate requests
+      - Frontend button disabling is a complement, never a substitute — network retries and double-clicks bypass UI controls
+      - Check current state before mutating: if already in the target state, return success without re-executing
+
+      ```ruby
+      # Bad — no server-side guard, double-click triggers twice
+      def finalize!
+        campaign.update!(status: :finalized)
+        send_notifications
+      end
+
+      # Good — idempotent with state check
+      def finalize!
+        return if campaign.finalized?
+        campaign.update!(status: :finalized)
+        send_notifications
+      end
+      ```
+    sources: [20497]
+
+  - title: "Feature Flags Are Not Transactional with Auth State"
+    content: |
+      - Flipper (or similar feature flag) writes are not wrapped in your database transaction — if the transaction rolls back, the flag persists
+      - Never enable feature flags inside a DB transaction that gates access or permissions
+      - Enable flags after the transaction commits, or use an `after_commit` callback
+
+      ```ruby
+      # Bad — flag persists even if transaction rolls back
+      ActiveRecord::Base.transaction do
+        org.update!(plan: :enterprise)
+        Flipper.enable(:advanced_permissions, org)
+        raise ActiveRecord::Rollback # flag is still enabled!
+      end
+
+      # Good — enable after commit
+      ActiveRecord::Base.transaction do
+        org.update!(plan: :enterprise)
+      end
+      Flipper.enable(:advanced_permissions, org)
+      ```
+    sources: [25652]
+
+  - title: "Defend Against Missing Third-Party Security Scripts"
+    content: |
+      - Third-party security scripts (Turnstile, reCaptcha) may fail to load due to ad blockers, network issues, or CSP restrictions
+      - Always add defensive existence checks before accessing security-related browser globals
+      - Wrap access in a Promise-based loader that resolves with the instance to confine usage to one location and prevent timing bugs
+
+      ```typescript
+      // Bad — assumes global is always available
+      const token = await window.turnstile.execute(siteKey);
+
+      // Good — defensive check with fallback
+      const getTurnstile = (): Promise<Turnstile> =>
+        new Promise((resolve) => {
+          if (window.turnstile) return resolve(window.turnstile);
+          const interval = setInterval(() => {
+            if (window.turnstile) { clearInterval(interval); resolve(window.turnstile); }
+          }, 100);
+        });
+      ```
+    sources: [22793, 22982]
+
+  - title: "Document Protocol Verification Code with Spec Links"
+    content: |
+      - When implementing webhook signature verification, OAuth flows, or other protocol-specific auth logic, link to the authoritative documentation inline
+      - Cryptographic and protocol-specific code can't be validated purely by reading it — reviewers need the spec to confirm correctness
+      - Treat external auth protocol implementations as "magic incantations" that require a source-of-truth reference
+
+      ```ruby
+      # Bad — no reference, reviewer can't verify correctness
+      def verify_signature(request)
+        sig = OpenSSL::HMAC.hexdigest("SHA256", signing_secret, "#{timestamp}:#{body}")
+        ActiveSupport::SecurityUtils.secure_compare(sig, request_sig)
+      end
+
+      # Good — links to authoritative spec
+      # Slack request verification: https://api.slack.com/authentication/verifying-requests-from-slack
+      def verify_signature(request)
+        sig = OpenSSL::HMAC.hexdigest("SHA256", signing_secret, "#{timestamp}:#{body}")
+        ActiveSupport::SecurityUtils.secure_compare(sig, request_sig)
+      end
+      ```
+    sources: [22511]
+
+  - title: "Never Delete Audit Records — Append Reversals"
+    content: |
+      - When reverting a state change in financial systems, mark the original change request as reverted rather than deleting it
+      - Maintain the full audit trail (including reversals) for legal compliance and debugging
+      - Append reversal entries instead of mutating or destroying the original record
+
+      ```ruby
+      # Bad — deletes the original record
+      data_change_request.destroy!
+
+      # Good — marks as reverted, preserving the trail
+      data_change_request.update!(status: :reverted, reverted_at: Time.current)
+      ```
+    sources: [25090]
+
+  - title: "Protect Signed Documents from Mutation"
+    content: |
+      - Any code path that regenerates, replaces, or deletes documents must explicitly guard against overwriting signed or finalized artifacts
+      - Default regeneration behavior must be safe — only replace unsigned documents unless explicitly opted in
+      - Treat signed documents as immutable; an opt-in parameter (e.g., `replace_unsigned_only: true`) makes the safe default explicit
+
+      ```ruby
+      # Bad — regeneration overwrites signed documents by default
+      def regenerate_agreement!(closing)
+        closing.agreement.destroy!
+        generate_new_agreement!(closing)
+      end
+
+      # Good — safe default, explicit opt-in to replace
+      def regenerate_agreement!(closing, replace_signed: false)
+        return if closing.agreement&.signed? && !replace_signed
+        closing.agreement&.destroy!
+        generate_new_agreement!(closing)
+      end
+      ```
+    sources: [26326]
+
+  - title: "Keep Instrumentation Out of Auth Control Flow"
+    content: |
+      - When adding metrics, logging, or observability to authentication or authorization code, keep instrumentation in separate non-branching blocks
+      - Never embed auth logic inside instrumentation calls; never let observability code change which auth branch executes
+      - Diff the before/after call graph when refactoring login or auth flow code — instrumentation additions are a common source of silent behavior changes
+
+      ```ruby
+      # Bad — instrumentation changes which auth path executes
+      def authenticate_user
+        if track_event(:sign_in) { perform_login } # side-effect changes branch
+          redirect_to dashboard_path
+        end
+      end
+
+      # Good — instrumentation is separate, control flow is unchanged
+      def authenticate_user
+        result = perform_login
+        track_event(:sign_in, success: result.ok?)
+        result.ok? ? redirect_to(dashboard_path) : render(:login)
+      end
+      ```
+    sources: [26434]
+
+  - title: "Minimize Data Surface Across System Boundaries"
+    content: |
+      - In multi-system workflows, pass only identifiers and metadata between systems — not business data
+      - Passing form inputs or business data across system boundaries (e.g., Flowdash → Venture, webhook → CRM) means a compromised upstream system can inject or overwrite data
+      - Business data may only be edited from the originating system's UI; downstream systems receive only a request ID, target stage, files, and initiating user
+      - Any feature that exports or syncs data across system boundaries requires an explicit PII audit before shipping
+    sources: [26095, 25557]

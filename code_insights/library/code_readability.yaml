@@ -1,0 +1,106 @@
+topic: code_readability
+scope: all
+
+practices:
+  - title: "Flatten Nesting with Early Returns"
+    content: |
+      - Use early returns and `continue` to reduce indentation depth
+      - Remove redundant guards before loops — iterating an empty array is a no-op
+      - For retry-with-limit patterns, prefer recursion with an attempt parameter over while loops with mutable counters
+
+      ```typescript
+      // Bad — redundant guard + deep nesting
+      if (items.length > 0) {
+        for (const item of items) {
+          if (item.isValid) {
+            process(item);
+          }
+        }
+      }
+
+      // Good — flat, no redundant guard
+      for (const item of items) {
+        if (!item.isValid) continue;
+        process(item);
+      }
+      ```
+    sources: [6889, 2659]
+
+  - title: "Extract Large Modules by Responsibility"
+    content: |
+      - When a file accumulates helpers serving a distinct sub-purpose, extract them into their own module
+      - Encapsulation and readability outweigh minor gains from co-locating unrelated logic
+      - Especially important for authorization logic, which must be easy to audit
+
+      ```typescript
+      // Bad — hooks file contains both data-fetching and cell renderers
+      // usePortfolioData.ts (500+ lines mixing concerns)
+
+      // Good — split by responsibility
+      // usePortfolioData.ts (data-fetching hook)
+      // portfolioCellHelpers.ts (cell renderer functions)
+      ```
+    sources: [6905, 3215]
+
+  - title: "Keep Comments Accurate and Preserve Intent"
+    content: |
+      - Comments about execution semantics (parallel vs sequential) must match the code
+      - When a field is a proxy for another concept, comment the correlation and its limits
+      - When complex coordination patterns are justified, document the "why" inline
+      - When refactoring or moving code, carry explanatory comments with the logic
+
+      ```typescript
+      // Bad — misleading comment invites broken "optimization"
+      // Run all operations in parallel
+      await stepA();
+      await stepB(); // actually sequential and must stay that way
+
+      // Good — accurate comment prevents mistakes
+      // Sequential execution is intentional — stepB depends on stepA's side effects
+      await stepA();
+      await stepB();
+      ```
+    sources: [6977, 7092, 3034, 2652, 3215]
+
+  - title: "Remove Dead Code Before Review"
+    content: |
+      - Clean up artifacts from abandoned implementation attempts before submitting PRs
+      - When pivoting approaches (e.g., REST to message queues), remove the abandoned path promptly
+      - After design decisions are finalized, remove holdover code written under previous assumptions
+      - Leftover integration code confuses readers and risks unintended side effects
+    sources: [7226, 3059, 3193]
+
+  - title: "Name Implicit Assumptions Explicitly"
+    content: |
+      - Extract array index access (`.at(0)`, `[0]`) into named variables with comments explaining why
+      - Consolidate parallel Maps sharing the same key set into a single Map with tuple/object values
+
+      ```typescript
+      // Bad — implicit assumption buried in chained access
+      const org = investor.organizations.at(0);
+
+      // Good — assumption is documented and questionable
+      // Each investor has exactly one org in this context (single-entity investors)
+      const primaryOrg = investor.organizations.at(0);
+
+      // Bad — two maps with identical keys
+      const amounts = new Map<string, number>();
+      const dates = new Map<string, Date>();
+
+      // Good — single map, explicit relationship
+      const paymentInfo = new Map<string, [number, Date]>();
+      ```
+    sources: [3062, 7299]
+
+  - title: "Document Temporary Workarounds"
+    content: |
+      - When using a temporary mechanism (localStorage, in-memory cache) as a stand-in, document which system is the source of truth
+      - Link to follow-up work so future developers know the current approach is not intentional
+    sources: [2652]
+
+  - title: "Prefer Simpler Business Logic"
+    content: |
+      - Before adding complexity to filters or conditional logic, verify the requirement with product stakeholders
+      - Simpler filtering logic is preferable when the business requirements support it
+      - Don't add complexity for assumed requirements
+    sources: [3185]

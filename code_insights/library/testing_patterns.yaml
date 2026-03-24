@@ -1,0 +1,248 @@
+topic: testing_patterns
+scope: all
+
+practices:
+  - title: "Colocate Test Files with Source"
+    content: |
+      - Place test files next to the source file they test (e.g., `Component.test.tsx` beside `Component.tsx`)
+      - Do not use separate `__tests__` directories
+      - In monorepos, each package with tests needs its own test runner config file so lint-staged and similar tools resolve correctly
+
+      ```
+      # Bad
+      src/components/Button.tsx
+      __tests__/components/Button.test.tsx
+
+      # Good
+      src/components/Button.tsx
+      src/components/Button.test.tsx
+      ```
+    sources: [2874, 2729, 5075]
+
+  - title: "Test Isolation for Parallelism"
+    content: |
+      - Scope each test to unique data (distinct orgs, users, IDs) instead of forcing serial execution
+      - Randomize all IDs and unique fields in E2E seeders — hardcoded values cause collisions in parallel runs
+      - Use insert, not upsert, in seeders; upsert masks ID collision problems
+      - Never use `jest.setTimeout` or serial patterns to avoid shared-state conflicts
+
+      ```typescript
+      // Bad — destroys parallel execution
+      jest.setTimeout(30000);
+      // relies on shared org across tests
+
+      // Good — each test gets its own org
+      const org = await createOrg({ handle: randomHandle() });
+      ```
+    sources: [3642, 6808]
+
+  - title: "Black-Box Testing over Mock Verification"
+    content: |
+      - Assert on outputs and side effects, not on whether specific internal functions were called
+      - Mock-invocation assertions break when internals are refactored and don't prove correctness
+      - If mocking is necessary, validate the resulting output
+
+      ```typescript
+      // Bad — coupled to implementation
+      expect(mockService.process).toHaveBeenCalledWith(input);
+
+      // Good — verifies actual behavior
+      const result = await handler(input);
+      expect(result.status).toBe("completed");
+      ```
+    sources: [6108]
+
+  - title: "Cover Edge Cases Explicitly"
+    content: |
+      - When adding special-case handling (blank strings, null, zero), add matching test cases
+      - For filtered lists, always test the null/uncategorized variant
+      - For pagination, test boundary conditions: zero offset, zero limit, offset-by-one
+      - For regex, include false-positive inputs that superficially resemble the pattern
+      - For mutations, assert unchanged fields were not accidentally modified
+      - For services that operate on parallel/sibling entities, add a test for sequential calls — one sibling's operation can silently undo another's state changes if the resolution check is too narrow
+
+      ```typescript
+      // Mutation test — verify no side effects on untouched fields
+      await editMember({ name: "New Name" });
+      const member = await getMember(id);
+      expect(member.name).toBe("New Name");
+      expect(member.role).toBe("admin"); // unchanged field preserved
+      ```
+    sources: [5995, 3004, 3129, 2729, 3407, 18479]
+
+  - title: "Derive Test Values from Source-of-Truth Constants"
+    content: |
+      - Reference production constants and derive boundary values (e.g., `MAX + 1`)
+      - Do not hardcode magic numbers that duplicate business rules
+      - Inject explicit timestamps instead of using real delays for time-dependent tests
+
+      ```typescript
+      // Bad
+      const overLimit = 500_001;
+
+      // Good
+      const overLimit = MAX_ACH_TRANSFER_AMOUNT_CENTS + 1;
+      ```
+    sources: [6355, 6083]
+
+  - title: "Use Generated GraphQL Mocks"
+    content: |
+      - Use codegen-generated mock helpers (e.g., `mockEntity()` from `gen/graphql/mocks`) instead of hand-rolling test fixtures
+      - Generated mocks stay in sync with the schema automatically
+      - Check for existing generated mocks before writing manual ones
+    sources: [3244, 4980]
+
+  - title: "mockClear vs mockReset"
+    content: |
+      - Use `mockClear` to reset call counts between tests while preserving mock behavior
+      - Use `mockReset` only when you need to remove the mock implementation entirely
+      - Confusing the two causes tests to silently stop returning values
+    sources: [3243]
+
+  - title: "E2E Fixture Architecture"
+    content: |
+      - Fixtures provide reusable tools and integrations, not test-specific data configuration
+      - Test-specific setup belongs in the test files; promote to shared fixtures only when reused
+      - Use an OOP builder pattern with method chaining for complex domain relationships
+      - Place relationship methods on the proto that owns the relationship, internalizing dependency resolution
+      - Keep DB seeders off the public fixture API; use Symbol-keyed properties for internal sharing
+      - Refactor repetitive form-filling into loops over data structures
+
+      ```typescript
+      // Builder pattern for fixtures
+      senderOrg
+        .createDistribution({ amount: 1000 })
+        .createPayment(directoryEntity);
+      ```
+    sources: [6808, 7227, 7132]
+
+  - title: "Exhaustive Classification Testing"
+    content: |
+      - For mutually exclusive predicates, define a truth table mapping all inputs to expected outputs
+      - Assert true for the matching type and false for all others in a single loop
+      - This prevents false positives from untested combinations and scales as variants are added
+
+      ```typescript
+      const expected: Record<TransferType, boolean> = {
+        INTERNAL: true, OUTBOUND: false, INBOUND: false,
+      };
+      for (const [type, result] of Object.entries(expected)) {
+        expect(isInternal(type)).toBe(result);
+      }
+      ```
+    sources: [6083]
+
+  - title: "E2E Infrastructure Safety"
+    content: |
+      - Never hardcode fallback values for env vars in E2E infrastructure — require explicit presence and fail fast
+      - Comment all test-only code (date pinning, mock configs, feature flags) explaining the "why"
+      - Environment-gate load-testing scripts that send external communications (emails, SMS) to staging only
+      - When anonymizing production data for staging, preserve well-known email domains (gmail.com, hotmail.com, yahoo.com) rather than obfuscating them — systems that validate email domains will reject anonymized addresses, making staging data non-production-like
+    sources: [6855, 4217, 3940, 24683]
+
+  - title: "Use Data Layer Abstractions in Tests"
+    content: |
+      - Prefer data layer methods over raw ORM queries in tests
+      - The data layer handles parsing/casting (e.g., JSON settings) that you'd otherwise replicate manually
+      - Tests that use the same code path as production are more trustworthy
+
+      ```typescript
+      // Bad — manual casting
+      const org = await prisma.organization.findUnique({ where: { id } });
+      const settings = JSON.parse(org.settings as string);
+
+      // Good — uses data layer
+      const org = await data.organization.findBy({ id });
+      // org.settings is already parsed
+      ```
+    sources: [7068]
+
+  - title: "Explicit Seeder Dependencies"
+    content: |
+      - In dependency graph systems (test seeders, module systems), declare dependencies explicitly even if transitively included
+      - Prevents breakage if intermediate dependencies change
+      - Makes dependency relationships self-documenting
+    sources: [3330]
+
+  - title: "Test Complex Dataloaders"
+    content: |
+      - Dataloaders with composite keys, complex grouping, or authorization logic need at least a happy-path unit test
+      - Verify results return in the correct order matching original keys
+    sources: [5377]
+
+  - title: "Delete Flaky Tests or Make Them Diagnosable"
+    content: |
+      - Don't skip flaky tests indefinitely — either delete them or invest in fixing them
+      - Skipped tests accumulate as tech debt with no owner and give a false sense of coverage
+      - If keeping a flaky test, add diagnostic output (e.g., print backtraces on failure) so the root cause can be found
+    sources: [22190]
+
+  - title: "Keep PRs Focused — Revert Unrelated Changes"
+    content: |
+      - Revert auto-generated or unrelated file changes (schema caches, lockfiles, generated artifacts)
+      - Unrelated diffs obscure review, risk merge conflicts, and can mask accidental changes to shared files
+      - Never reference production IDs, secrets, or real user data in test specs or code comments
+    sources: [22558, 26526]
+
+  - title: "Use FactoryBot Traits for Optional Associations"
+    content: |
+      - Don't add eager associations to base factories — they create implicit dependencies and slow unrelated tests
+      - Use traits for optional associated records so each spec explicitly opts in to the setup it needs
+      - This keeps factories lightweight and test intent clear
+
+      ```ruby
+      # Bad — every test creates an LLC
+      factory :fund do
+        after(:create) { |f| create(:llc, fund: f) }
+      end
+
+      # Good — opt-in via trait
+      factory :fund do
+        trait :with_llc do
+          after(:create) { |f| create(:llc, fund: f) }
+        end
+      end
+      ```
+    sources: [19507]
+
+  - title: "Sanitize Cell Values in Excel/CSV Exports"
+    content: |
+      - Always sanitize cell values to prevent CSV injection attacks
+      - Prefix dangerous characters (`=`, `+`, `-`, `@`, tab, carriage return) with a single quote
+      - Extract a `sanitize_cell_value` helper and apply to all user-originated fields
+    sources: [25581]
+
+  - title: "Respect Packwerk Module Boundaries"
+    content: |
+      - Don't reference code from another package that violates packwerk boundaries
+      - Use public APIs, move logic to the appropriate package, or add explicit dependencies
+      - The `lib` directory should remain app-agnostic — domain model references don't belong there
+      - Adding to the packwerk todo file is acceptable only as a temporary measure with a concrete resolution plan
+    sources: [17494, 23179]
+
+  - title: "Never Load Mock Modules in Production Code"
+    content: |
+      - Don't reference or load mock/test modules in production code, even behind environment variable guards
+      - Test doubles should only exist in the test environment
+      - Leaking them into production creates confusion about code paths and risks accidentally enabling mocks
+    sources: [23128]
+
+  - title: "Normalize Before Comparing, Don't Special-Case in Loops"
+    content: |
+      - When comparing data structures with insignificant differences (zero-valued entries), normalize both inputs first
+      - A simple equality check after normalization is easier to understand, test, and maintain than special-case logic in comparison loops
+
+      ```ruby
+      # Bad — special-case logic in comparison loop
+      schedule_a.each do |entry|
+        match = schedule_b.find { |e| e.key == entry.key }
+        next if match.nil? && entry.value.zero?
+        ...
+      end
+
+      # Good — normalize then compare
+      norm_a = schedule_a.reject { |e| e.value.zero? }
+      norm_b = schedule_b.reject { |e| e.value.zero? }
+      norm_a == norm_b
+      ```
+    sources: [18496]

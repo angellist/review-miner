@@ -1,0 +1,87 @@
+topic: logging_observability
+scope: all
+
+practices:
+  - title: "Don't Report Expected Conditions as Errors"
+    content: |
+      - If a code path handles a known/expected state, log at info/debug level — don't send it to the error tracker
+      - Noisy error trackers erode trust and make real issues harder to spot
+      - Reserve error reporting for genuinely unexpected failures
+
+      ```ruby
+      # Bad — expected state triggers error tracker
+      if document.state == :archived
+        Sentry.capture_message("Document is archived")
+        return
+      end
+
+      # Good — log expected case, report only unexpected ones
+      if document.state == :archived
+        Rails.logger.info("Skipping archived document #{document.id}")
+        return
+      end
+      ```
+    sources: [17138]
+
+  - title: "Consistent Datadog Metric Tags"
+    content: |
+      - When emitting Datadog metrics, check existing usages of the same metric name to ensure consistent tagging
+      - Missing tags on some emission sites creates blind spots in dashboards and monitors
+      - All emission sites for the same metric should use the same tag set
+    sources: [26769]
+
+  - title: "Command/Audit Trail Pattern"
+    content: |
+      - Structure service entry points so the public API creates a command (auditable record), and the command delegates to internal logic
+      - Place internal logic in a separate namespace (e.g., `Commands::ServiceName`) to prevent bypassing audit trails
+      - This enables future enforcement via module boundary tools like packwerk
+
+      ```ruby
+      # Bad — internal logic called directly, no audit trail
+      Transfers::Logic.execute(params)
+
+      # Good — public API creates command, command calls internal logic
+      Transfers::Service.execute(params)  # creates Command record
+      # -> Command#apply calls Transfers::Logic internally
+      ```
+    sources: [25117]
+
+  - title: "Never Expose Sequential IDs Externally"
+    content: |
+      - Don't expose auto-incrementing database IDs in external-facing exports or APIs
+      - Sequential IDs enable enumeration attacks and leak internal growth metrics
+      - Use slugs, UUIDs, or other opaque identifiers instead
+    sources: [17942]
+
+  - title: "Logging Helpers Encapsulate Their Own Guards"
+    content: |
+      - Move guard conditions inside logging helper methods rather than duplicating them at every call site
+      - Call sites should not need to check `if from != to` before calling `log_dimension_change` — the method handles that itself
+
+      ```ruby
+      # Bad — guard duplicated at every call site
+      log_dimension_change(dc, key, from, to) if from != to
+
+      # Good — guard lives inside the helper
+      def log_dimension_change(dc, key, from, to)
+        return if from == to
+        # ... log the change
+      end
+      log_dimension_change(dc, key, from, to)
+      ```
+    sources: [24247]
+
+  - title: "Health Check Validation Semantics"
+    content: |
+      - For existence-style health checks ("does a valid document exist?"), prefer "any pass" over "all must pass" semantics
+      - Strict "all must pass" logic produces false negatives when multiple versions of a record coexist (e.g., draft + executed)
+      - Match the check's logic to a human reviewer's mental model of what "healthy" means
+
+      ```ruby
+      # Bad — fails if ANY document is not executed (too strict)
+      documents.all? { |doc| doc.executed? }
+
+      # Good — passes if ANY document is executed
+      documents.any? { |doc| doc.executed? }
+      ```
+    sources: [20133]

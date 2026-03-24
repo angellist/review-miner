@@ -6,6 +6,18 @@ This fork extends the mining pipeline with an automated review bot, GitHub Actio
 
 Rules are **pre-mined and shipped in this repo** — you can start reviewing immediately without running the pipeline.
 
+### What's mined
+
+| Repo | PRs | Review Threads | Insights Extracted |
+|------|-----|---------------|-------------------|
+| Venture | 3,362 | 9,280 | 1,594 |
+| Nova | 1,797 | 5,026 | 758 |
+| Adapt | 222 | 553 | 96 |
+| Infra | 128 | 299 | 45 |
+| **Total** | **5,509** | **15,158** | **2,493** |
+
+After filtering, **517 practices** across **33 topics** are synthesized into `rules/sections/`. The raw data (threads, insights, library) is committed in `code_insights/`.
+
 ## Quick Start
 
 ```bash

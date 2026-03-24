@@ -1,0 +1,18 @@
+topic: security
+scope: all
+
+practices:
+  - title: "Default to SHA256 Over MD5"
+    content: |
+      - Prefer SHA256 over MD5 even for non-security-critical hashing (anonymized identifiers, cache keys)
+      - MD5 triggers security scanners (Semgrep) and sets a bad precedent
+      - Using SHA256 by default avoids unnecessary security review friction
+
+      ```ruby
+      # Bad — triggers Semgrep, requires justification
+      Digest::MD5.hexdigest(email)
+
+      # Good — equally simple, no scanner friction
+      Digest::SHA256.hexdigest(email)
+      ```
+    sources: [18544]

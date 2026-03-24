@@ -1,0 +1,57 @@
+topic: service_layer_patterns
+scope: all
+
+practices:
+  - title: "Layer Separation: Routers, Services, Data"
+    content: |
+      - Routers handle request/response only — no Prisma calls or business logic
+      - Business logic belongs in `lib/` or `services/`; raw DB calls belong in `data/`
+      - HTTP client classes should be pure transport — colocate domain-specific transforms (URL construction, data reshaping) with the routes that use them
+
+      ```ts
+      // Bad — business logic and Prisma in a router
+      router.post('/publish', async (req, res) => {
+        const draft = await prisma.draft.update({ where: { id }, data: { publishedAt: new Date() } });
+        await notifySubscribers(draft);
+      });
+
+      // Good — router delegates to lib, lib calls data layer
+      router.post('/publish', async (req, res) => {
+        const result = await libDistribution.publishDraft(id);
+        res.json(result);
+      });
+      ```
+    sources: [6681, 6855]
+
+  - title: "Match Permission Checks to Operation Type"
+    content: |
+      - Read endpoints check `canView`; write endpoints check `canEdit`
+      - Encapsulate write operations in services that enforce the correct permission level
+      - Audit permission mismatches when an endpoint evolves from read to read-write
+    sources: [6289]
+
+  - title: "Encapsulate Derived State in Model Helpers"
+    content: |
+      - When a boolean state is derived from a non-obvious field (e.g., timestamp, enum combo), add a named helper on the model
+      - Prevents implementation details from leaking into business logic
+
+      ```ts
+      // Bad — callers interpret raw field
+      if (draftPayment.publishedAt !== null) { ... }
+
+      // Good — model encapsulates the derivation
+      if (draftPayment.isPublished()) { ... }
+      ```
+    sources: [6289]
+
+  - title: "Couple Tightly-Bound Data Layer Models"
+    content: |
+      - When a join-table model has no standalone use case (e.g., EntityFile without File), export the associated model alongside it from the data layer
+      - Avoids redundant in-memory joins and makes the coupling explicit
+    sources: [6513]
+
+  - title: "Break Circular Lib Dependencies with Extraction"
+    content: |
+      - When importing between lib modules creates a circular dependency, extract the shared function into a separate, lower-level module
+      - Name the new module after the domain concept it represents (e.g., `libEntity`) rather than leaving it in an unrelated module
+    sources: [3004]

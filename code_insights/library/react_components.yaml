@@ -1,0 +1,409 @@
+topic: react_components
+scope: frontend
+
+practices:
+  - title: "Positive Boolean Props"
+    content: |
+      - Name boolean props with positive prefixes (`show*`, `is*`, `has*`, `allow*`), not negative (`hide*`, `isHidden`)
+      - Default to `true` when the common case is to show the element
+      - Don't name a boolean prop after a CSS property (`padding`, `border`, `shadow`) — it implies a value, not a toggle; use `includePadding`, `hasBorder` instead
+
+      ```tsx
+      // Bad — double negation when consuming; CSS property name implies a value
+      <Panel hideStats={!shouldShow} isContentHidden={!expanded} padding={true} />
+
+      // Good
+      <Panel showStats={true} isExpanded={expanded} includePadding={true} />
+      ```
+    sources: [5485, 6184, 4455, 2010, 2547]
+
+  - title: "Reuse Existing Hooks and Design System Components"
+    content: |
+      - Before writing custom logic, search for existing hooks (`useMutationOrToast`, `useNovaToast`, `useMobile`)
+      - Before building custom UI behavior (popovers, animations), check ADAPT for built-in components
+      - Before writing date/time or error formatting helpers, check shared utilities (`@/lib/datetime.ts`, `@/lib/errors.ts`)
+      - Don't wrap a single function call in a custom hook — only create hooks when you need React lifecycle integration
+      - Know what your component library handles internally (e.g., Adapt's Button with `type='submit'` manages submission state)
+
+      ```tsx
+      // Bad — custom popover positioning + custom toast
+      const [pos, setPos] = useState(calculatePosition(ref));
+      toast({ title: 'Error', variant: 'destructive' });
+
+      // Good — design system + project hooks
+      <AnchoredPopover trigger={ref}>...</AnchoredPopover>
+      const { showError } = useNovaToast();
+      ```
+    sources: [2857, 2871, 5503, 2673, 2735, 3805, 4621, 17480, 18582, 19013, 19264]
+
+  - title: "Conditional Rendering Readability"
+    content: |
+      - Use guard clauses with early `return null` for conditional rendering instead of wrapping entire JSX in ternaries
+      - Extract complex inline conditionals into named helper functions or variables above the return
+      - For nested ternaries, extract into sub-components rather than `renderContent` helpers
+      - Avoid `renderX()` methods — they bypass hooks composition rules and lose TypeScript type inference; extract as proper functional components instead
+      - Push repeated conditional rendering logic down into child components rather than repeating ternaries in the parent
+
+      ```tsx
+      // Bad
+      return tagValue ? <Tag>{complex ? a : b}</Tag> : <></>;
+
+      // Good
+      if (!tagValue) return null;
+      const label = buildLabel(complex, a, b);
+      return <Tag>{label}</Tag>;
+      ```
+    sources: [7184, 3813, 3932, 4648, 3696, 21555, 22105, 22630, 2062, 2072]
+
+  - title: "Modal and Drawer Lifecycle"
+    content: |
+      - Show modals immediately with a skeleton loading state rather than delaying open until data loads
+      - Control animated drawers/blades via `isOpen` prop, not conditional mount/unmount (which skips transitions)
+      - Don't keep form-containing modals always-mounted for animation — stale form state persists across open/close cycles
+      - If always-mounted is required, reset form state on open via `useEffect`
+    sources: [2629, 2974, 7250, 19769]
+
+  - title: "Shared Component API Design"
+    content: |
+      - Make changes to shared components opt-in via new props, not default behavior changes
+      - Make non-essential slots optional — don't force callers to pass empty content
+      - When a prop has the same value at every call site, move it to a default inside the component
+      - Prefer configuration props (e.g. `columns` array) over type-discriminator props (`dashboardType`) that embed domain knowledge
+      - Audit all consumers before changing a shared component's state management contract
+      - When modifying a shared component for a specific use case (e.g., admin pages), leave a comment documenting the change is use-case-specific
+
+      ```tsx
+      // Bad — domain knowledge in generic component
+      <MembersTable dashboardType="meridian" />
+
+      // Good — caller declares configuration
+      <MembersTable columns={['member', 'status', 'date-added']} />
+      ```
+    sources: [5283, 5469, 6669, 4575, 4033, 6682, 25275]
+
+  - title: "Form Patterns"
+    content: |
+      - Use the project's `<Form>` component even for simple forms — consistency matters
+      - Inside forms, import RHF-wrapped components (e.g. from `rhf/` path), not raw design system inputs
+      - The component that renders a form should own its lifecycle — don't hoist form state to a parent just to pass it down
+      - Export form config (schema, defaults) as a named object, not as static properties on the component function
+
+      ```tsx
+      // Bad — raw Select silently drops values from form submission
+      import { Select } from '@adapt/core';
+
+      // Good — RHF version wires into form context
+      import { Select } from '@adapt/rhf';
+      ```
+    sources: [5443, 3672, 3681, 4040]
+
+  - title: "Error Feedback for Network Calls"
+    content: |
+      - Always surface mutation/fetch errors to the user via toast or inline error state
+      - Use project hooks (`useMutationOrToast`, `useNovaToast`) instead of manual toast configuration
+      - Use existing error extraction utilities (e.g., `lib/errors.ts`) rather than displaying raw error objects
+      - Silent failures erode user trust, especially in financial UIs
+    sources: [2871, 5485, 5503, 2857, 18734, 19264]
+
+  - title: "Component Composition Over Conditional Branching"
+    content: |
+      - A "mode" prop threaded through many sub-expressions is a code smell — split into separate components sharing composable pieces
+      - When a component renders nothing (pure side effects), convert it to a custom hook
+      - Extract significant inline logic (fetching, state, effects) into dedicated hooks when it obscures rendering intent
+      - Use `children` for nested/collapsible content instead of custom content props
+
+      ```tsx
+      // Bad — mode prop threaded everywhere
+      <Dashboard type="admin" />  // branches in 12 places internally
+
+      // Good — composition
+      <AdminDashboard />   // shares useMetrics(), <StatsPanel /> with
+      <UserDashboard />    // different top-level layout
+      ```
+    sources: [3976, 2670, 4892, 6184, 3060]
+
+  - title: "Loading States"
+    content: |
+      - Use skeleton loaders, not misleading default text, during data fetching
+      - Open modals immediately with skeleton content rather than blocking on async data
+      - Always handle error states alongside loading states — a spinner without error fallback creates an infinite spinner on failure
+      - Only use loading state indicators for genuinely async operations; setting loading flags around synchronous updates causes extra re-renders
+      - Return `null` (not `<></>`) when conditionally rendering nothing
+
+      ```tsx
+      // Bad — shows "Any" while loading, looks like real data
+      {loading ? 'Any' : investmentType}
+
+      // Good
+      {loading ? <Skeleton width={80} /> : investmentType}
+      ```
+    sources: [4898, 2629, 3795, 17480, 22308, 22594]
+
+  - title: "Responsive Layout"
+    content: |
+      - Prefer CSS-based responsive design (`display: none`, responsive props) over JS conditional rendering for layout differences
+      - Multi-column layouts with financial data should collapse to single-column on mobile breakpoints
+      - In responsive design systems where breakpoints cascade upward, only specify the breakpoint where the value changes — redundant entries obscure actual responsive behavior
+
+      ```tsx
+      // Bad — renders both trees, extra reconciliation
+      {isMobile ? <MobileLayout /> : <DesktopLayout />}
+
+      // Good — CSS handles visibility
+      <Box display={{ xs: 'none', md: 'flex' }}>...</Box>
+      ```
+    sources: [6570, 4925, 22763]
+
+  - title: "Prop Naming and Structure"
+    content: |
+      - Name layout props by semantic position (`breadcrumbsPrefix`), not generic names
+      - When a component consumes multiple fields from one object, pass the whole object instead of individual props
+      - When both a full object and a subfield are passed, make the subfield optional with a default from the object
+      - Avoid redundant JSX wrappers — pass strings directly when the prop accepts a string
+      - Use `isOpen: boolean` and `onClose: () => void` for modal/dialog visibility and dismissal props
+      - Prefer a single enum/state value over multiple boolean flags for mutually exclusive states
+      - For props that are required but may be null during loading, use `string | null` rather than optional (`?:`)
+      - Place destructured parameters with default values at the end of the parameter list
+      - When extending props via intersection or Omit, ensure the implementation actually passes through the advertised props
+
+      ```tsx
+      // Bad — multiple booleans for mutually exclusive states
+      <Button isDealStarted={true} isDealStopped={false} />
+
+      // Good — single enum value
+      <Button dealState="started" />
+      ```
+    sources: [5470, 3060, 4206, 6751, 22511, 23867, 24923, 18115, 18211]
+
+  - title: "Avoid Unnecessary Abstraction"
+    content: |
+      - Don't create wrapper components that just pass props through — use the underlying component directly
+      - Don't create hooks that wrap a single non-React function call
+      - Don't wrap design system props in intermediate layers — pass them directly
+      - Review AI-generated components for redundant indirection
+
+      ```tsx
+      // Bad — wrapper adds nothing
+      const StatusCell = (props) => <InteractionTag {...props} />;
+
+      // Good — use directly
+      <InteractionTag status={status} />
+      ```
+    sources: [6682, 4621, 4743]
+
+  - title: "Centralize URLs and Constants"
+    content: |
+      - Define external URLs and cross-app links in centralized path constants (`paths.venture.*`, `lib/paths`), not inline in components
+      - Extract enumerable domain data (network lists, supported currencies, status values) to a constants file; prefer sourcing from a data model or API if the list may change
+      - Move static data (route paths, config objects, constant arrays) outside the component function body to avoid re-allocation on every render
+      - Use design system tokens for z-index values, not hardcoded numbers
+      - Establish a consistent convention for absent values in display (e.g. always EMDASH for missing data)
+    sources: [7265, 3344, 6201, 20720, 20796, 23580, 23804, 18046]
+
+  - title: "Video and Media Elements"
+    content: |
+      - When using `autoPlay` on video elements, always include `muted` (browser autoplay policy) and `playsInline` (iOS Safari fullscreen prevention)
+
+      ```tsx
+      // Bad — autoplay silently fails
+      <video autoPlay loop src={url} />
+
+      // Good
+      <video autoPlay loop muted playsInline src={url} />
+      ```
+    sources: [6770]
+
+  - title: "Use Semantic Interactive Elements"
+    content: |
+      - Use design system `<Button>` over generic containers (`<Box>`, `<div>`) for interactive elements
+      - Generic containers lack built-in disabled state, focus management, and accessibility
+      - If you must use a container, manually guard click handlers and add ARIA attributes
+      - Don't use disabled form inputs to display read-only data — use plain text instead, reserving inputs for editable fields
+    sources: [3094, 18582]
+
+  - title: "Use Design System Primitives Over Raw HTML and CSS"
+    content: |
+      - Use `<Box>`, `<Text>`, `<Stack>` from ADAPT instead of raw `<div>`, `<p>`, `<span>`
+      - Use component props (`marginBottom`, `color`, `textAlign`) instead of custom SCSS or inline styles
+      - Use `<Stack direction='horizontal'>` for flex layouts instead of `<Box display='flex'>`
+      - Use `<Skeleton>` for loading states, `<NullState>` for empty states
+      - Convert pixel values to design system tokens
+      - Use `<Stack>` for spacing between elements, never `<br/>` tags
+      - Preserve semantic HTML in list-like components — use `<Stack as='ul'>` or `<Box as='ul'>` for lists of items
+
+      ```tsx
+      // Bad — raw HTML with inline styles
+      <div style={{ display: 'flex', marginBottom: '16px' }}>
+        <p style={{ color: '#666' }}>Loading...</p>
+      </div>
+
+      // Good — design system primitives
+      <Stack direction='horizontal' gap='200'>
+        <Text color='text70'>
+          <Skeleton lines={3} />
+        </Text>
+      </Stack>
+      ```
+    sources: [22763, 26568, 26508, 26503, 26605, 26728, 25583, 26558, 17756, 19264, 24661]
+
+  - title: "Don't Repeat Default Prop Values"
+    content: |
+      - Don't explicitly set props to their default values (e.g., `direction='vertical'` on Stack, `gap='100'`)
+      - It adds visual noise and misleads readers into thinking the value was intentionally changed
+      - Know the defaults of your design system components
+    sources: [26210, 26605, 26395]
+
+  - title: "Render Modals and Dialogs Once, Not in Loops"
+    content: |
+      - Never render modals or dialogs inside `.map()` loops — only one can be open at a time
+      - Render the dialog once outside the loop, use state to track which item is active
+      - This avoids unnecessary DOM nodes and prevents subtle bugs from multiple instances
+
+      ```tsx
+      // Bad — N dialog instances in DOM
+      {items.map(item => (
+        <Dialog key={item.id} onConfirm={() => delete(item.id)}>...</Dialog>
+      ))}
+
+      // Good — single dialog, state-controlled
+      <Dialog isOpen={!!deleteId} onConfirm={() => delete(deleteId)}>
+        {items.find(i => i.id === deleteId)?.name}
+      </Dialog>
+      ```
+    sources: [26728]
+
+  - title: "Sync Form State with Displayed Defaults"
+    content: |
+      - Never set a default/initial value only on the UI component without initializing form state
+      - The form submits its internal state, not what the user sees on screen
+      - This mismatch between displayed defaults and submitted values causes incidents
+
+      ```tsx
+      // Bad — visual default not in form state
+      <Input defaultValue="100" name="amount" />
+
+      // Good — form state matches display
+      useForm({ defaultValues: { amount: "100" } });
+      ```
+    sources: [21948]
+
+  - title: "Map Enum Values to Display Names"
+    content: |
+      - Never display raw backend enum values directly in the UI, even with simple transforms
+      - Simple capitalization produces awkward results for camelCase values like 'inReview'
+      - Use an explicit display-name mapping dictionary
+
+      ```tsx
+      // Bad — raw transform
+      <Tag>{status.charAt(0).toUpperCase() + status.slice(1)}</Tag>
+
+      // Good — explicit mapping
+      const STATUS_LABELS: Record<Status, string> = {
+        inReview: 'In Review', published: 'Published',
+      };
+      <Tag>{STATUS_LABELS[status]}</Tag>
+      ```
+    sources: [22586]
+
+  - title: "Explicit Timezone Handling for Date Display"
+    content: |
+      - When displaying dates from an API, be explicit about timezone handling
+      - If the API returns ISO datetimes with a time component, pass `timeZone: 'utc'` to date formatters
+      - Pure date strings (YYYY-MM-DD) without time components are safe without this
+    sources: [25110]
+
+  - title: "Prefer `type` Over `interface` for Props"
+    content: |
+      - Use `type Props = { ... }` for React component props, not `interface IProps`
+      - Avoid Hungarian notation (no `I` prefix on type names)
+      - Types are more flexible (support unions, intersections) and the codebase convention uses `type Props`
+    sources: [25154, 26568, 18322]
+
+  - title: "Use `href` for Navigation Buttons"
+    content: |
+      - When a button's purpose is navigation, use `href` instead of `onPress` with programmatic navigation
+      - This preserves native browser link behaviors (middle-click, right-click, cmd/ctrl-click)
+      - Improves accessibility for screen readers
+    sources: [24601]
+
+  - title: "Disable Instead of Hide for Async Eligibility"
+    content: |
+      - Never hide interactive elements based on async checks that complete after user interaction
+      - Disable the element with a tooltip explaining why it's unavailable
+      - Show an error state in any modal/dialog that opens while ineligible
+    sources: [26508]
+
+  - title: "Warn Before Irreversible Financial Actions"
+    content: |
+      - For destructive or irreversible financial operations, show a clear contextual warning
+      - Display the warning at the moment the user commits (e.g., when a checkbox is checked), not just in general modal copy
+      - Financial UIs must make consequences explicit to prevent costly mistakes
+    sources: [25982]
+
+  - title: "Mark Deprecated Components with @deprecated"
+    content: |
+      - When duplicating a component to create a replacement, mark the old one with `/** @deprecated */`
+      - Makes the intent clear to other developers and prevents accidental use
+      - Rename components when the feature they're named after is removed
+    sources: [18615, 22708]
+
+  - title: "Keep Presentation Logic Out of API Payloads"
+    content: |
+      - Send structured JSON data from backend services, not pre-formatted strings
+      - Let the consuming presentation layer handle formatting and rendering
+      - Pre-formatted strings in APIs are brittle, hard to localize, and limit downstream flexibility
+    sources: [17964]
+
+  - title: "Encapsulate Visibility Logic in the Component"
+    content: |
+      - When a component's visibility depends on a condition, push that condition into the component itself
+      - Have the component accept the relevant data and return null when it should not render
+      - This prevents condition drift across multiple call sites
+
+      ```tsx
+      // Bad — visibility duplicated at every call site
+      {shouldShowCallout && <Callout data={data} />}
+
+      // Good — component decides internally
+      <Callout data={data} />  // returns null if !shouldShow(data)
+      ```
+    sources: [25406]
+
+  - title: "Check Container Built-in Props Before Custom Rendering"
+    content: |
+      - Check if container components (Table, Modal) have built-in props for common states (empty, loading, error)
+      - Use the `emptyState` table prop instead of separate conditional `<NullState>` rendering
+      - Use `<Skeleton isLoading={loading}>` wrapping instead of custom loading conditions
+    sources: [26503]
+
+  - title: "Consistent Prop Naming Across Components"
+    content: |
+      - Props that serve the same semantic purpose should use the same name across all related/sibling components
+      - When two names exist for the same concept (e.g., `density` vs `size`), normalize to one — let the type system express per-component valid values
+      - When renaming a prop as part of an API change, also rename all associated type aliases and exports
+
+      ```tsx
+      // Bad — sibling components use different names for the same concept
+      <CopyButton content="..." />
+      <CopyCell value="..." />  // should also be `content`
+
+      // Good — consistent naming lets developers transfer knowledge
+      <CopyButton content="..." />
+      <CopyCell content="..." />
+      ```
+    sources: [2299, 2303]
+
+  - title: "Avoid Top-Level Discriminated Unions on Props"
+    content: |
+      - Don't express conditional prop relationships via a top-level discriminated union — TypeScript inference degrades noticeably beyond 2-3 variants
+      - Bundle dependent properties into a nested config type instead
+      - Extend existing config objects with new fields rather than adding parallel top-level props
+
+      ```tsx
+      // Bad — top-level union breaks prop forwarding and confuses TypeScript
+      type Props = BaseProps & (CompactProps | NonCompactProps);
+
+      // Good — nested config keeps the props object flat
+      type Props = { compact?: boolean | { emphasizeLabel: boolean } };
+      ```
+    sources: [2303, 2322]

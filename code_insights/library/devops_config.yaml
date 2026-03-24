@@ -1,0 +1,47 @@
+topic: devops_config
+scope: all
+
+practices:
+  - title: "SOPS-Encrypted File Editing"
+    content: |
+      - Never hand-edit SOPS-encrypted files directly — always use `sops` to decrypt, edit, and re-encrypt
+      - Manual edits break the verification hash, causing silent decryption failures at runtime
+      - In devcontainer env configs, prefer IP addresses (127.0.0.1) over hostnames (localhost) to avoid DNS resolution differences across networks
+
+      ```yaml
+      # Bad - editing .env.enc by hand
+      vim .devcontainer/.env.enc  # hash now invalid
+
+      # Good
+      sops .devcontainer/.env.enc  # decrypts, opens editor, re-encrypts with valid hash
+      ```
+    sources: [6053, 5204]
+
+  - title: "Remove Stale Config on Auth Changes"
+    content: |
+      - When switching authentication mechanisms (e.g., API keys to JWTs), audit and remove old config entries
+      - Stale credentials create confusion about which auth is active and remain a security risk if unmonitored
+
+      ```hcl
+      # Bad - old API key config left behind after switching to JWT auth
+      internal_api_key = "..."  # unused, now authenticating via JWT from microservice
+
+      # Good - delete the superseded config entry entirely
+      ```
+    sources: [5857]
+
+  - title: "Build-Time vs Runtime Config in Next.js"
+    content: |
+      - next.config.js is evaluated at build time — environment-specific values cannot vary between deploys
+      - Next.js 14 middleware runs in edge runtime, also limited to build-time env vars
+      - For environment-specific HTTP headers (e.g., CSP), set them at the k8s ingress layer for deployed environments
+      - Keep app-level header config only for local development where there is no ingress
+    sources: [6106]
+
+  - title: "Dependency Version Bumps in PRs"
+    content: |
+      - Isolate dependency version bumps from feature changes — bump in a separate preceding PR
+      - Version bumps can introduce subtle breaking changes and must be independently evaluable and revertible
+      - When adding new dependencies, verify license compatibility (e.g., BSD-3-Clause distribution requirements)
+      - Confirm license comments survive the build/minification pipeline
+    sources: [6150, 5516]

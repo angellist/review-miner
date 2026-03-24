@@ -1,0 +1,543 @@
+topic: graphql_schema
+scope: fullstack
+
+practices:
+  - title: "Layer Hierarchy: data -> lib -> schema"
+    content: |
+      - Maintain strict import order: data -> lib -> schema/resolver
+      - lib must not import from schema; schema must not import from data directly (go through lib)
+      - Data layer returns raw/untransformed results; lib layer handles generic transforms (snake_case -> camelCase); schema layer handles GraphQL-specific shape transforms
+      - Restrict direct ORM (Prisma) calls to the data layer only — all other layers use data layer abstractions
+      - Keep the graph/API layer product-agnostic; product-specific logic lives in its own module
+      - Domain services must not raise transport-layer errors (e.g., `DetailedExecutionError`); raise domain errors and let the GraphQL layer translate
+
+      ```ts
+      // Bad — lib importing from schema
+      // graph/src/lib/transformers.ts
+      import { SomeSchemaType } from '../schema/types'
+
+      // Good — transformer in schema layer, lib returns raw data
+      // graph/src/schema/transformers.ts
+      import { rawData } from '../lib/someService'
+      ```
+    sources: [5485, 6166, 4490, 20766, 22361]
+
+  - title: "Thin Resolvers"
+    content: |
+      - Keep GraphQL resolvers as thin wrappers — no business logic, no switch statements, no validation, no data formatting
+      - Extract argument validation, branching logic, domain operations, and CSV/report generation into the service (lib) layer
+      - Data layer should return nullable results; let the resolver/caller decide how to handle missing data
+      - When multiple resolvers share identical query-building logic, extract it into a shared fetch service immediately
+      - Don't pass GraphQL input types into service-layer logic — convert to domain types (Sorbet structs/enums) at the boundary using `prepare`
+      - Validation belongs in the service or model layer, not in resolvers — ensures consistency across all entry points
+
+      ```ruby
+      # Bad — business logic in resolver
+      def resolve(fundraising_campaign_id:)
+        fc = FundraisingCampaign.find(fundraising_campaign_id)
+        fc.members.select { |m| m.active? }.sort_by(&:name)
+      end
+
+      # Good — delegate to service
+      def resolve(fundraising_campaign_id:)
+        MemberService.active_sorted(fundraising_campaign_id:)
+      end
+      ```
+    sources: [6111, 4805, 5212, 20887, 22939, 23294, 18122, 19326, 22630, 23988, 24011, 20836, 21958, 23080, 22470, 23640, 23508, 24462, 25730, 22708]
+
+  - title: "Fragment Colocation"
+    content: |
+      - Co-locate GraphQL fragments with the component or hook that consumes the data
+      - Parent queries spread child fragments — each component declares its own data requirements
+      - Derive component prop types from generated fragment types, never define them manually
+      - If a hook (not the component) uses the data, export the fragment from the hook
+      - Never create shared query files or centralized query directories — they couple components that evolve independently
+      - Keep fragment definitions in a single location per component — don't split fields across multiple fragment blocks
+      - Prefer component-specific fragments over shared ones to prevent overfetching as components diverge
+      - Pass parent fragment objects as props rather than destructuring into many individual props — keeps components coupled to their data requirements
+
+      ```tsx
+      // Bad — manual type, no fragment
+      type UserData = { name: string; email: string }
+      const UserCard = ({ data }: { data: UserData }) => ...
+
+      // Good — fragment + generated type
+      export const UserCardFragment = gql`
+        fragment UserCard on User { name email }
+      `
+      const UserCard = ({ data }: { data: UserCardFragment }) => ...
+      ```
+    sources: [2698, 2667, 3681, 3884, 6285, 6365, 6845, 3985, 21896, 23015, 22763, 24289, 25099, 18322, 18332, 18582, 23731, 25707, 19686]
+
+  - title: "Apollo Cache: Always Include id"
+    content: |
+      - Always select the `id` field in every GraphQL query — Apollo uses `__typename` + `id` for cache normalization
+      - For models without a natural ID, create a synthetic ID on the backend resolver (e.g., combining entity ID + org ID)
+      - Omitting `id` breaks automatic cache updates and causes stale data after mutations
+
+      ```graphql
+      # Bad — missing id
+      fragment BankAccount on BankAccount {
+        accountNumber
+        routingNumber
+      }
+
+      # Good
+      fragment BankAccount on BankAccount {
+        id
+        accountNumber
+        routingNumber
+      }
+      ```
+    sources: [6570, 2667]
+
+  - title: "Apollo Cache: Mutations and Updates"
+    content: |
+      - Return the full entity type from mutations so Apollo can auto-update its normalized cache
+      - For updates, rely on Apollo's automatic cache normalization — don't refetch
+      - For deletes, use `cache.evict({ id })` + `cache.gc()` instead of refetching
+      - Before adding `refetchQueries`, verify whether Apollo's cache should already handle the update — investigate root cause (mismatched response shape, incorrect cache logic) first
+      - For creates, use targeted cache insertion rather than refetching the entire parent query
+      - Return the affected parent object from mutations so the frontend cache can update children automatically
+      - Custom mutation hooks should return `[mutationFn, mutationResult] as const` matching Apollo's useMutation API
+    sources: [6277, 6365, 6544, 23197, 25099, 25594, 24011, 26308]
+
+  - title: "Pothos: fieldWithInput and Inline Args"
+    content: |
+      - Prefer `t.fieldWithInput` over `t.field` with manual args for mutations
+      - Use inline input fields when the input is only used by a single mutation — reduces boilerplate and keeps input co-located
+      - Only extract a shared input type when it's reused across multiple operations
+
+      ```ts
+      // Bad — separate input type for single-use
+      const UpdateNameInput = builder.inputType('UpdateNameInput', {
+        fields: (t) => ({ name: t.string({ required: true }) }),
+      })
+
+      // Good — inline with fieldWithInput
+      t.fieldWithInput({
+        input: { name: t.input.string({ required: true }) },
+        resolve: (_, { input }) => updateName(input.name),
+      })
+      ```
+    sources: [5810, 3681, 3799]
+
+  - title: "Pothos: Auth Scoping and ID Convention"
+    content: |
+      - Use `.withAuth` scopes on field definitions to guarantee authenticated context — don't manually null-check `ctx.account`
+      - Expose ID fields with the project convention: `t.expose("id", { type: "UUID" })`
+      - Use existing context helpers (e.g., `isImpersonating`) instead of reimplementing request-level checks
+    sources: [4098, 3696, 3080]
+
+  - title: "Pothos: Pagination with prismaConnection"
+    content: |
+      - Use `t.prismaConnection` for paginated list fields — it handles cursor management, take/skip, and totalCount automatically
+      - For totalCount alongside a connection, use the library's built-in third-object option rather than creating a separate resolver
+      - Ensure all queries in connection helpers go through the data layer, not raw Prisma calls
+    sources: [4086, 3914, 6166]
+
+  - title: "GraphQL Error Handling"
+    content: |
+      - Use `graphQLInputError` for validation failures — it associates messages with specific input fields for field-level UI errors
+      - Don't propagate HTTP status codes through GraphQL; use domain-specific string enums (e.g., `BANK_ACCOUNT_NOT_FOUND`)
+      - When required data is missing in a resolver, raise an explicit error — never silently return nil or empty defaults
+      - Always capture GraphQL mutation responses on the frontend and use error-handling utilities (`throwIfGraphQLError`)
+      - Rescue only specific error classes in mutations — generic `StandardError` rescue blocks hide real bugs
+
+      ```ruby
+      # Bad — silent nil on missing data
+      def resolve(id:)
+        record = Model.find_by(id: id)
+        return nil unless record  # hides data corruption
+      end
+
+      # Good — fail loudly
+      def resolve(id:)
+        Model.find_by!(id: id)  # raises RecordNotFound
+      end
+      ```
+    sources: [5834, 5409, 23294, 23455, 24172, 25370, 23640, 22041, 20819, 23689, 18975, 21324, 22307]
+
+  - title: "Schema Typing: Precision Over Generics"
+    content: |
+      - Use precise GraphQL types — `[String!]!` not `JSON` when the shape is known
+      - Expose known value sets as GraphQL enums, not raw strings — gives frontend generated TypeScript types
+      - Use `GraphQL::Types::ISO8601DateTime` for timestamps; avoid custom date types — let clients handle formatting
+      - For collection/list input fields, prefer non-nullable with empty array default over nullable
+      - Field nullability declarations must match actual resolver return values — a `null: false` field backed by a nilable method will raise at runtime
+      - Field types should reflect actual data precision (e.g., Integer for whole-dollar amounts, not Float)
+      - When multiple domain models share a GraphQL enum, verify they truly share identical valid values — a union catch-all enum silently permits invalid states; prefer per-type enums
+      - In list/aggregate types, prefer nullable fields when source data quality varies — a single nil shouldn't error the entire result list
+
+      ```graphql
+      # Bad — loose typing
+      type DataRoom {
+        tags: JSON
+        transactionType: String
+      }
+
+      # Good — precise typing
+      type DataRoom {
+        tags: [String!]!
+        transactionType: TransactionTypeEnum!
+      }
+      ```
+    sources: [3681, 5464, 5377, 5968, 17700, 22824, 19043, 17849, 17966, 18094, 22923, 22078, 18287, 18301]
+
+  - title: "N+1 Prevention in Resolvers"
+    content: |
+      - When a resolved field triggers a DB query, it will N+1 in list/connection contexts — use dataloaders or BatchLoader::GraphQL to batch
+      - Expensive computed fields should be top-level queries, not resolved fields on parent types, to make cost visible to callers
+      - Before calling existing service methods inside field resolvers, check what queries they execute internally — methods fine in isolation may N+1 in list context
+      - Don't add blanket `.includes` in resolvers as a quick fix — resolvers don't know what fields clients will request; use field-level batch loading instead
+      - Only add preloads to a resolver if the association is required by every query using it; for optional fields, use batch loaders
+      - When adding fields to widely-used types, consider the blast radius — a new association on a shared type creates N+1s for every consumer
+      - When adding association traversals in shared concerns, be aware of the N+1 multiplication effect — flag for monitoring and proactively add preloading at known call sites
+
+      ```ruby
+      # Bad — N+1 in list context
+      field :settings, SettingsType, null: true
+      def settings
+        object.settings  # called per row
+      end
+
+      # Good — BatchLoader
+      field :settings, SettingsType, null: true
+      def settings
+        BatchLoader::GraphQL.for(object.id).batch do |ids, loader|
+          Setting.where(org_id: ids).each { |s| loader.call(s.org_id, s) }
+        end
+      end
+      ```
+    sources: [2859, 3801, 4319, 5579, 3493, 17700, 22630, 25783, 25648, 18282, 25035, 23047, 24189, 24155, 22552, 22343, 25376]
+
+  - title: "Schema Organization"
+    content: |
+      - One resolver per file — don't inline resolvers in index/barrel files
+      - Namespace admin resolvers and types under a separate admin package — admin types can compose non-admin types, but not vice versa
+      - All GraphQL types share a global namespace — name with enough specificity to avoid collisions (e.g., `FundraisingCampaignChecklistItemType`, not `ChecklistItemType`)
+      - Nest related data under the parent type rather than creating top-level query fields with long compound names — follow the graph structure
+      - Before creating a new type, check if an existing type already covers the fields you need
+      - Avoid placing slow-to-compute fields in eagerly-loaded root queries (ViewerQuery) — split into dedicated async queries
+      - Don't create separate types to isolate slow fields — GraphQL resolves fields on demand; performance is controlled by which fields the client queries
+      - GraphQL connection and type class namespacing should mirror the schema hierarchy — a connection type belongs under the parent type that uses it
+      - When adding new types that share fields/behavior with existing types (e.g., different parsable document types), define a shared interface to enforce consistency
+      - Namespace third-party integration queries under their domain rather than polluting the top-level query type
+    sources: [3080, 4946, 5425, 22554, 24068, 23750, 22763, 25400, 25982, 22581, 20684, 20887]
+
+  - title: "Data Layer Composition"
+    content: |
+      - Don't hardcode `include`/`select` clauses in data layer query functions — let callers specify which relations to load
+      - When migrating to a data layer abstraction, ensure all queries go through it consistently — no raw ORM models from new code
+    sources: [6211, 6166]
+
+  - title: "Deploy Safety for Schema Changes"
+    content: |
+      - Deploy server-side schema changes before client-side queries — bundling both risks the frontend querying non-existent fields
+      - When modifying or removing fields, deploy in two phases: (1) add new alongside old, (2) remove old after first deploy is live
+      - When modifying shared GraphQL fragments that reference new server fields, deploy the backend first in a separate PR
+      - When modifying GraphQL enums, trace all frontend consumers (switch statements, conditional renders) and update in the same PR
+      - Only commit auto-generated schema file changes (schema.graphql dumps) that are directly related to your PR — local environment differences cause unrelated diffs in generated files; exclude these to keep PRs reviewable
+
+      ```
+      # Phase 1 PR: Add new field, keep old
+      field :legacyName, String  # keep
+      field :displayName, String # add
+
+      # Phase 2 PR (after Phase 1 is deployed): Remove old
+      # field :legacyName — removed
+      field :displayName, String
+      ```
+    sources: [17582, 17607, 18168, 23249, 19466, 20284]
+
+  - title: "graphql-ruby Conventions"
+    content: |
+      - Use `resolver_method` (not `method`) when the resolver function is defined on the type class itself
+      - When a field delegates to a model method/association, use the `method:` option — don't define a redundant resolver method
+      - Omit `method:` when the field name matches the method name identically; for camelCase fields, `method:` maps to the snake_case Ruby method
+      - Define arguments with snake_case names — the framework auto-camelCases them for the schema
+      - Use the `value` parameter on enum values to encode domain values directly, eliminating manual mapping
+      - The GraphQL type class serves as the presentation layer — put field-level presentation logic there, not in separate presenters
+      - graphql-ruby freezes input objects — `dup` frozen inputs before passing to code that mutates hashes
+      - When refactoring methods off a model, grep for implicit GraphQL field resolution — graphql-ruby calls `object.method_name` when no explicit resolver is defined
+      - When exposing Ruby enum/value objects, explicitly serialize to a string or scalar — Ruby's default `#to_s` produces internal representations
+      - All new GraphQL mutation/type files must use `# typed: strict` — never `typed: false` or `typed: true`; enforce this as a hard rule in code review
+      - Use the `GraphQL::` namespace (uppercase QL), not `Graphql::` — in Ruby they are different constants and mixing them risks accidental method overwrites in open modules
+      - Use the `object_type` class method on GraphQL type classes to declare the expected Ruby object type — provides Sorbet static type checking and catches type mismatches at compile time rather than runtime
+
+      ```ruby
+      # Bad — redundant resolver method
+      field :name, String, null: false
+      def name
+        object.name
+      end
+
+      # Good — use method: option
+      field :name, String, null: false, method: :name
+
+      # Good — boolean with resolver_method
+      field :has_agreements, Boolean, null: false,
+            resolver_method: :has_agreements?
+      def has_agreements?
+        object.agreements.any?
+      end
+      ```
+    sources: [20284, 23876, 17607, 18395, 18370, 22979, 19762, 26503, 23053, 23682, 22227, 22444, 25258, 25333, 25982, 22630]
+
+  - title: "Mutation Design Patterns"
+    content: |
+      - Follow `[resource][action]` naming convention (e.g., `bankingAttributionCreate`, not `createBankingAttribution`)
+      - Use keyword arguments in `perform` methods — not positional args, not `@inputs`
+      - Don't pass `current_user` as a mutation argument — use `context[:current_user]` on the backend
+      - For one-of-many dispatch, use an enum argument instead of multiple boolean flags
+      - When a mutation's precondition checks don't depend on input, expose them as a queryable boolean field (e.g., `canApprove`) for proactive frontend UX
+      - Data-modifying operations must be mutations, never queries
+      - When the codebase has an established command pattern for mutations, follow it for new types
+      - Avoid generic nested field names like `input` that produce `input: { input: { ... } }` at the call site — use domain-specific names (e.g., `form1065Input`)
+      - For mutations with multiple possible owner types, use a required polymorphic pair (enum type + ID) rather than multiple optional ID fields — makes the invariant structural
+      - Name mutations after the specific operation (`syncMembersToVenture`) — not vague prefixes like `fix`
+
+      ```ruby
+      # Bad — positional args, generic naming
+      def perform(id, type, user_id)
+        ...
+      end
+
+      # Good — keyword args, resource-first naming
+      # mutation: fundraisingCampaignUpdate
+      def perform(fundraising_campaign_id:, name:)
+        ...
+      end
+      ```
+    sources: [25493, 23640, 23936, 18370, 18582, 25216, 23508, 22526, 24028, 18332, 25798, 22470, 26502, 25593, 24089, 17167]
+
+  - title: "Apollo Client Patterns"
+    content: |
+      - Use the `loading` state from `useMutation` — don't duplicate with manual `useState`
+      - Always add explicit generic type parameters to `useQuery` and `useMutation` (e.g., `useQuery<MyQuery, MyQueryVariables>`)
+      - Use `useQuery` with `skip` option for deferred queries (e.g., modal open) instead of `useState` + `useLazyQuery`
+      - Avoid Apollo's `onCompleted` callback to sync query results into state — use `useEffect` on the data instead
+      - Never use `any` for GraphQL query results — use generated types from codegen
+      - Use shared hooks (`useMutationWithToast`) for mutation + feedback patterns before implementing custom logic
+      - When data comes from a query with multiple fragments on the same type, the result is an intersection (`&`), not a union (`|`)
+      - After auth-changing mutations (login, session refresh), use `fetchPolicy: 'network-only'` for follow-up queries — Apollo's cache reflects pre-auth state and won't invalidate automatically
+      - Don't pass fake objects to satisfy context provider type requirements — restructure the component or use the fragments pattern instead
+
+      ```tsx
+      // Bad — manual loading state
+      const [loading, setLoading] = useState(false)
+      const [mutate] = useMutation(MUTATION)
+      const handleClick = async () => {
+        setLoading(true)
+        await mutate()
+        setLoading(false)
+      }
+
+      // Good — use hook's loading
+      const [mutate, { loading }] = useMutation(MUTATION)
+      ```
+    sources: [20299, 20929, 25970, 26508, 18370, 24492, 24911, 24870, 26447, 22105, 25982, 24921, 19686, 26320, 26368, 25351, 26557, 24173, 18148]
+
+  - title: "Schema Field Naming"
+    content: |
+      - Don't repeat the parent type name in field names (`distribution.amount`, not `distribution.distributionAmount`)
+      - Avoid naming fields `type` in polymorphic types — use `category`, `kind`, or the domain term
+      - Use fully qualified names over abbreviations in APIs (e.g., `fundraisingCampaign`, not `fc`)
+      - Follow consistent naming for analogous fields across types
+      - Expose relationships as typed objects or unions, not bare ID lists
+      - When structured data shares common fields (checkable, checked, label), use a dedicated type rather than scattering booleans
+
+      ```graphql
+      # Bad — bare IDs, redundant naming
+      type Distribution {
+        distributionAmount: Float
+        relatedFundIds: [ID!]!
+      }
+
+      # Good — clean naming, typed relationships
+      type Distribution {
+        amount: Int!
+        relatedFunds: [Fund!]!
+      }
+      ```
+    sources: [26113, 18179, 23892, 23787, 24068, 24028, 20656, 17749, 22470]
+
+  - title: "Backend Logic Placement"
+    content: |
+      - Keep permissions and state transition logic on the backend — expose pre-computed booleans (`canApprove`) rather than raw state data
+      - Push domain-specific conditional logic (entity type checks, special cases) into the backend presenter or resolver
+      - Compute display names and formatted labels in the GraphQL type, not on the frontend
+      - Perform data ordering at the SQL or resolver layer, not in frontend code
+      - Display-specific sorting belongs in the consuming resolver layer, not in the data-producing service
+
+      ```ruby
+      # Bad — frontend computes permissions from raw data
+      # (frontend) const canApprove = data.transitions.includes('approve')
+
+      # Good — backend exposes computed boolean
+      field :can_approve, Boolean, null: false
+      def can_approve
+        policy.can_approve?(object)
+      end
+      ```
+    sources: [22511, 20656, 24830, 24427, 19527, 22824, 25730, 23696, 24820]
+
+  - title: "Admin Resolver Authorization"
+    content: |
+      - Inherit from base resolver/mutation classes (`Resolvers::Admin::BaseResolver`, `Mutations::Admin::BaseMutation`) that handle authorization — don't reimplement checks
+      - Admin types and resolvers live in a separate namespace; admin types may reference non-admin types but not vice versa
+      - Don't pass the current user as a mutation argument — use `context[:current_user]`; prefer method accessor over `@current_user`
+      - GraphQL enums and types should reference authoritative constants from the domain layer (packwerk), not duplicate values
+    sources: [22659, 24416, 22554, 22824, 25021, 18370]
+
+  - title: "Avoid Circular and Over-Exposed Schema"
+    content: |
+      - Be cautious about back-references that create circular query paths (child -> parent -> children) — they enable expensive or infinite queries
+      - Only expose fields the client actually needs — audit AI-generated types for unused fields before committing
+      - Prefer returning whole types and letting clients select fields, rather than creating specialized resolvers for individual fields
+      - Before adding a new field, check if it already exists on a more appropriate type
+      - GraphQL types should expose data unconditionally — don't encode frontend display logic in backend field visibility
+      - Don't prefetch presigned S3 URLs in GraphQL resolvers — URLs expire, waste bandwidth for unclicked rows, and add query complexity; return a controller route URL instead and generate the presigned URL on demand when the user actually requests it
+
+      ```ruby
+      # Bad — circular reference enables expensive queries
+      # AdminInvestmentClosingType
+      field :fundraising_campaign, FundraisingCampaignType
+      # FundraisingCampaignType
+      field :investment_closings, [AdminInvestmentClosingType]
+
+      # Good — prop-drill specific fields or use a flat query
+      ```
+    sources: [25594, 23750, 23787, 24231, 26447, 23640, 24056, 18566, 26503]
+
+  - title: "@include/@skip Directive Placement"
+    content: |
+      - Place `@include`/`@skip` directives on the field or fragment that wraps the resolver — not after the field where the resolver would still execute
+      - Incorrect placement causes auth-gated resolvers to fire for unauthenticated users even though the field is omitted from the response
+
+      ```graphql
+      # Bad — resolver still executes for unauthenticated users
+      query PageQuery($includeAccount: Boolean!) {
+        investAccount @include(if: $includeAccount) { ... }
+      }
+      # (directive positioned after the field in some implementations)
+
+      # Good — directive on the field prevents resolver execution
+      query PageQuery($includeAccount: Boolean!) {
+        ... on Query @include(if: $includeAccount) {
+          investAccount { ... }
+        }
+      }
+      ```
+    sources: [20449]
+
+  - title: "Prefer GraphQL over REST for New Endpoints"
+    content: |
+      - When the frontend already consumes a GraphQL API, add new data access through GraphQL mutations/queries rather than new REST controller actions
+      - Mixing API styles fragments the surface area and forces the frontend to maintain two different data-fetching patterns
+      - Controller endpoints often redirect to legacy pages and break the SPA experience — mutations keep the user in the React UI
+    sources: [23015, 25581, 24576]
+
+  - title: "Boundary Input Validation"
+    content: |
+      - Distinguish input validation (enforce at GraphQL boundary via types/schema) from state validation (enforce at runtime in commands/services)
+      - Don't duplicate validation in mutations when the model layer or GraphQL's strong typing already handles it
+      - When refactoring form inputs from strings to typed GraphQL arguments, audit all downstream consumers for stale string comparisons
+      - Don't perpetuate permissive nil-tolerance from legacy code into new mutations — enforce stricter validation at new entry points
+
+      ```ruby
+      # Bad — redundant validation in mutation
+      def perform(status:)
+        raise "invalid" unless %w[active inactive].include?(status)
+        # GraphQL enum already prevents invalid values
+      end
+
+      # Good — trust the schema, validate state
+      def perform(status:)
+        raise "already active" if record.active?  # state check
+        record.update!(status:)
+      end
+      ```
+    sources: [25493, 21670, 19326, 22756, 24601]
+
+  - title: "Client-Side Data Fetching Boundaries"
+    content: |
+      - When using client-only rendering boundaries (e.g., `ssr: false`), ensure data fetching is also inside the boundary — not just the render component
+      - Scope query refetches to specific events (post-mutation) — don't trigger refetches broadly on every render or update
+      - For frontend navigation URLs that follow a predictable pattern, define them in frontend path constants rather than plumbing through GraphQL
+
+      ```tsx
+      // Bad — query outside SSR boundary, only render inside
+      const { data } = useQuery(HEAVY_QUERY)
+      return <ClientOnly><HeavyComponent data={data} /></ClientOnly>
+
+      // Good — query inside boundary
+      return <ClientOnly><HeavyComponentWithQuery /></ClientOnly>
+      ```
+    sources: [22105, 26308, 25620]
+
+  - title: "Preloaded Association Hygiene"
+    content: |
+      - When associations are preloaded, use Ruby in-memory `select`/`reject`/`filter` — calling `.where` or scopes on a preloaded association bypasses the cache and hits the DB again
+      - Don't replace abstracted association methods (e.g., `events_out`) with direct AR queries — abstractions respect preloading
+      - Avoid dual access patterns (both `through` and direct) for the same association — makes preloading unpredictable
+      - When only checking existence across a has_many, collapse to a single `.where(...).exists?` query
+      - `includes` works with polymorphic `belongs_to` associations — the misconception that it doesn't is wrong; only `has_many :through` chains are blocked for polymorphic types
+
+      ```ruby
+      # Bad — .where on preloaded association triggers new query
+      def active_members
+        object.members.where(active: true)  # ignores preload
+      end
+
+      # Good — in-memory filter on preloaded data
+      def active_members
+        object.members.select(&:active?)
+      end
+      ```
+    sources: [20760, 21834, 22226, 19252, 24155, 25376, 22552]
+
+  - title: "Generated TypeScript Types for GraphQL"
+    content: |
+      - Always add explicit generic type parameters to `useQuery` and `useMutation` (e.g., `useQuery<MyQuery, MyQueryVariables>`)
+      - Never use `any` for GraphQL query results — use codegen-generated types
+      - Derive function parameter types from query results using indexed access types (e.g., `Query['field'][number]`) rather than manual interfaces
+      - Type component props to the query's response type, not the full schema type — schema types may include fields the query doesn't return
+
+      ```tsx
+      // Bad — manual types, no codegen
+      const { data } = useQuery<any>(GET_USERS)
+      type User = { name: string; email: string }
+
+      // Good — generated types
+      const { data } = useQuery<GetUsersQuery, GetUsersQueryVariables>(GET_USERS)
+      type User = GetUsersQuery['users'][number]
+      ```
+    sources: [20929, 25970, 19255, 19384, 26447, 24056, 19686, 25348]
+
+  - title: "Shared Mutation Hooks and Utilities"
+    content: |
+      - Before implementing mutation + toast/notification patterns, check for shared hooks like `useMutationWithToast`
+      - Before writing custom GraphQL error handling, check for utilities like `throwIfGraphQLError`
+      - Before bypassing a shared abstraction for a "complex" case, check if the hook supports customization (callbacks, overrides)
+      - Use Apollo's built-in `loading` state from `useMutation` instead of manual `useState` — avoids bugs from forgetting to reset in error paths
+
+      ```tsx
+      // Bad — reimplementing existing patterns
+      const [mutate] = useMutation(MY_MUTATION)
+      const [loading, setLoading] = useState(false)
+      const handleSubmit = async () => {
+        setLoading(true)
+        try {
+          const result = await mutate({ variables })
+          toast.success('Saved!')
+        } catch { toast.error('Failed') }
+        finally { setLoading(false) }
+      }
+
+      // Good — use shared hook
+      const [mutate, { loading }] = useMutationWithToast(MY_MUTATION, {
+        successMessage: 'Saved!',
+      })
+      ```
+    sources: [24921, 24492, 26368, 26557, 24173, 18148, 20299, 24911]

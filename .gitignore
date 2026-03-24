@@ -6,12 +6,7 @@ __pycache__/
 .coverage
 
 # Generated data (produced by mining pipeline)
-code_insights/
 tmp/
-
-# Output (generated rule files — but keep sections/ since the bot needs them at runtime)
-rules/*
-!rules/sections/
 
 # Config (contains org-specific repo names)
 config.yaml
