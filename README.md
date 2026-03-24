@@ -71,6 +71,8 @@ No `ANTHROPIC_API_KEY` needed — it runs through Claude Code's own session.
 
 ## Setting Up GitHub Actions (Automated CI Reviews)
 
+> **Note:** The bot and GitHub Actions workflow are built but **not yet enabled** on any repo. The instructions below are for when we're ready to turn it on.
+
 The repo includes a reusable workflow that reviews PRs automatically when they're opened. It only posts **critical** severity comments to keep noise low.
 
 ### 1. Add the `ANTHROPIC_API_KEY` secret
