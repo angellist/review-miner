@@ -66,7 +66,7 @@ class TestAggregateSynthesis:
         assert insights[0]["status"] == "validated"  # unchanged
         assert insights[1]["status"] == "synthesized"
 
-    def test_skips_non_validated_insights(self, monkeypatch, tmp_path):
+    def test_skips_draft_but_synthesizes_topic_assigned(self, monkeypatch, tmp_path):
         data = {"insights": [
             {"id": 1, "status": "draft", "topic": "rails_patterns"},
             {"id": 2, "status": "topic_assigned", "topic": "graphql_schema"},
@@ -74,8 +74,9 @@ class TestAggregateSynthesis:
         saved = self._run(monkeypatch, tmp_path, data)
         aggregate_synthesis("test_run")
 
-        # Nothing was updated, so save_yaml should NOT have been called
-        assert saved["data"] is None
+        insights = saved["data"]["insights"]
+        assert insights[0]["status"] == "draft"  # draft unchanged
+        assert insights[1]["status"] == "synthesized"  # topic_assigned → synthesized
 
     def test_no_save_when_nothing_to_update(self, monkeypatch, tmp_path):
         data = {"insights": [

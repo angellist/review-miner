@@ -115,7 +115,7 @@ def gh_api(endpoint: str, paginate: bool = False) -> list | dict:
         raise
 
 
-def fetch_prs_for_range(github_repo: str, start: date, end: date) -> list[dict]:
+def fetch_prs_for_range(github_repo: str, start: date, end: date, retries: int = 5) -> list[dict]:
     """Fetch merged PRs for a specific date range using array-form args."""
     cmd = [
         "gh",
@@ -132,8 +132,19 @@ def fetch_prs_for_range(github_repo: str, start: date, end: date) -> list[dict]:
         "--json",
         "number,title,author,mergedAt,files",
     ]
-    result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-    return json.loads(result.stdout)
+    for attempt in range(retries):
+        try:
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            return json.loads(result.stdout)
+        except subprocess.CalledProcessError as e:
+            if attempt < retries - 1:
+                stderr = e.stderr[:200] if e.stderr else ""
+                is_server_error = "rate limit" in stderr.lower() or "502" in stderr or "503" in stderr
+                wait = 65 if is_server_error else 5 * (attempt + 1)
+                print(f"    Retry {attempt + 1}/{retries} for {start}..{end} (waiting {wait}s): {stderr}")
+                time.sleep(wait)
+            else:
+                raise
 
 
 def fetch_merged_prs(github_repo: str, since: date, until: date) -> list[dict]:
