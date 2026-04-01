@@ -8,15 +8,17 @@ Rules are **pre-mined and shipped in this repo** — you can start reviewing imm
 
 ### What's mined
 
-| Repo | PRs | Review Threads | Insights Extracted |
-|------|-----|---------------|-------------------|
-| Venture | 3,362 | 9,280 | 1,594 |
-| Nova | 1,797 | 5,026 | 758 |
+| Repo | PRs | Review Threads | Insights Synthesized |
+|------|-----|---------------|---------------------|
+| Venture | 3,542 | 9,825 | 1,808 |
+| Nova | 1,849 | 5,166 | 874 |
+| Treasury | 649 | 1,562 | 229 |
 | Adapt | 222 | 553 | 96 |
+| Ipseity | 69 | 161 | 30 |
 | Infra | 128 | 299 | 45 |
-| **Total** | **5,509** | **15,158** | **2,493** |
+| **Total** | **6,459** | **17,566** | **3,082** |
 
-After filtering, **517 practices** across **33 topics** are synthesized into `rules/sections/`. The raw data (threads, insights, library) is committed in `code_insights/`.
+After filtering, **2,946 insights** are synthesized into practices across **35 rule sections** in `rules/sections/`. The raw data (threads, insights, library) is committed in `code_insights/`.
 
 ## Quick Start
 
@@ -200,7 +202,7 @@ python3 scripts/review.py --list-rules https://github.com/angellist/nova/pull/73
 
 - **Rules go stale.** The mined rules are a snapshot of how we reviewed PRs up to the date they were last mined (see `rules/sections/CHANGELOG.md`). If the team's patterns evolve and nobody re-mines, the rules drift. Plan to re-mine quarterly.
 - **No substitute for human review.** The bot checks against known patterns — it can't catch novel bugs, bad product decisions, or architectural issues it hasn't seen before. "The bot didn't flag anything" does not mean the PR is good.
-- **33 topics is a lot.** Not every rule will be relevant to every team. Skim through `rules/sections/` and remove topics that don't apply to your codebase to keep signal-to-noise high.
+- **35 topics is a lot.** Not every rule will be relevant to every team. Skim through `rules/sections/` and remove topics that don't apply to your codebase to keep signal-to-noise high.
 
 ## Running Tests
 
@@ -232,7 +234,7 @@ bot/
   diff_parser.py           # PR diff parsing and filtering
   scope_matcher.py         # Rule selection based on file scopes
 
-rules/sections/            # Pre-mined review rules (33 topics, committed)
+rules/sections/            # Pre-mined review rules (35 topics, committed)
   CHANGELOG.md             # When rules were last mined
 config.yaml.example        # Template configuration
 references/                # Prompts and templates used by the mining pipeline
