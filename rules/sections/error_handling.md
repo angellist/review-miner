@@ -10,6 +10,9 @@ scope: all
 - Mutation hooks and service methods must surface errors: throw, return a Result, or display a toast — never silently return
 - Silent null checks on expected-present values mask bugs; throw when invariants are violated
 - Internal service calls must not swallow errors with a catch-all rescue; return the raw response and let callers handle failures, with logging at the call site
+- When handlers catch exceptions and convert them to structured error responses (e.g., bulk APIs), also report to Sentry — the client receiving an error object is not the same as engineers being alerted
+- Intentionally suppressed exceptions (not sent to error tracking) must still be logged locally so they're visible in application logs
+- Service methods that return domain objects must have their return values captured and threaded through — discarding them silently breaks downstream tracking with no error raised
 
 ```ts
 // Bad — error silently lost
@@ -19,7 +22,7 @@ void syncToVenture(entityId);
 syncToVenture(entityId).catch(err => errorTracker.report(err));
 ```
 
-_Sources: PR #5314, PR #5323, PR #5124, PR #3161, PR #4967, PR #7308, PR #3442, PR #6506, PR #4421, PR #5056, PR #20507_
+_Sources: PR #5314, PR #5323, PR #5124, PR #3161, PR #4967, PR #7308, PR #3442, PR #6506, PR #4421, PR #5056, PR #20507, PR #6087, PR #6909, PR #6693_
 
 ### Result Types: Adopt Bottom-Up, Consume with Tuples
 
@@ -27,19 +30,18 @@ _Sources: PR #5314, PR #5323, PR #5124, PR #3161, PR #4967, PR #7308, PR #3442, 
 - Consume results via `.tuple` destructuring (`const [error, value] = ...`) for explicit error handling
 - In resolvers, use exhaustive `switch` on `error._tag` with `ensureExhaustive` for compile-time safety
 - Keep raw operations and Result wrapping on separate lines for readability
+- Never use `_unsafeUnwrap()` for brevity — the `_unsafe` prefix signals it can throw at runtime; always guard with `isErr()` first
 
 ```ts
-// Good — tuple + exhaustive match in resolver
-const [error, value] = await service.create(input).tuple;
-if (!error) return value;
-switch (error._tag) {
-  case "notFound": throw graphqlNotFoundError();
-  case "forbidden": throw graphqlForbiddenError();
-  default: ensureExhaustive(error);
-}
+// Bad — can throw at runtime
+const value = result._unsafeUnwrap();
+
+// Good — explicit safe guard
+if (result.isErr()) throw result.error;
+const value = result.value;
 ```
 
-_Sources: PR #5323, PR #5334, PR #5204, PR #6247, PR #4879_
+_Sources: PR #5323, PR #5334, PR #5204, PR #6247, PR #4879, PR #6353_
 
 ### Use Typed, Transport-Agnostic Errors
 
@@ -114,6 +116,8 @@ _Sources: PR #5559, PR #7252, PR #3370, PR #3384_
 - Log at the layer with sufficient context — utility functions deep in the stack often lack actionable context
 - When throwing in service-level code, log the error at the throw site for observability
 - Remove bare `console.log` before merging or convert to structured logs with details
+- In pipeline architectures with multiple transformers/middleware steps, catch errors at each step, annotate with the step name, and re-throw — never swallow
+- When introducing new filtering or exclusion logic in a data pipeline, add observability (logs, metrics) to quantify how much data is being filtered
 
 ```ts
 // Bad — no context, no error object
@@ -123,7 +127,7 @@ logger.error("sync failed");
 logger.error("venture sync failed", { orgId, entityId, error });
 ```
 
-_Sources: PR #6299, PR #2965, PR #3001, PR #2982, PR #4897, PR #4037, PR #5101_
+_Sources: PR #6299, PR #2965, PR #3001, PR #2982, PR #4897, PR #4037, PR #5101, PR #3735, PR #7418_
 
 ### Handle Mutation Errors Before Updating UI
 
@@ -171,6 +175,7 @@ _Sources: PR #3024, PR #4674_
 - Use framework-provided error types (e.g., `graphQLNotFoundError` in Pothos) at the API boundary
 - Separate internal error context from user-facing messages — log the real reason, return a generic error
 - Wrap cross-service sync calls in transactions so failures result in clean rollback rather than half-synced state
+- A service's public interface must consolidate its error surface — don't let internal sub-service errors (especially authorization errors) leak through unchanged to callers
 
 ```ts
 // Bad — matching on fragile message string
@@ -180,7 +185,7 @@ if (error.message.includes("already exists")) { ... }
 if (error.extensions?.code === "ALREADY_EXISTS") { ... }
 ```
 
-_Sources: PR #3078, PR #3950, PR #3053, PR #4454, PR #4853_
+_Sources: PR #3078, PR #3950, PR #3053, PR #4454, PR #4853, PR #6353_
 
 ### Defensive Parsing of External Data
 
@@ -226,8 +231,9 @@ _Sources: PR #3193, PR #5145, PR #5334_
 - When component logic has states that "can't logically happen," add explicit error handling anyway
 - When a value is unexpectedly undefined and represents a programming error, prefer throwing over silent logging
 - Utility functions should not silently degrade to empty defaults — prefer stricter types so callers handle missing data explicitly
+- Place defensive exceptions at API and service boundaries even when current model-layer guards make them unreachable — a future developer extending the model won't necessarily know to update the API layer, and the defensive raise makes that breakage loud
 
-_Sources: PR #4375, PR #4421, PR #5056_
+_Sources: PR #4375, PR #4421, PR #5056, PR #5674_
 
 ### Staging vs. Production Observability
 

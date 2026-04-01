@@ -24,6 +24,7 @@ practices:
       - Before writing date/time or error formatting helpers, check shared utilities (`@/lib/datetime.ts`, `@/lib/errors.ts`)
       - Don't wrap a single function call in a custom hook — only create hooks when you need React lifecycle integration
       - Know what your component library handles internally (e.g., Adapt's Button with `type='submit'` manages submission state)
+      - Use `useAdminFeatureFlag` (`app/src/components/shared/useAdminFeatureFlag.ts`) for admin feature flags — don't implement inline flag checks
 
       ```tsx
       // Bad — custom popover positioning + custom toast
@@ -34,12 +35,13 @@ practices:
       <AnchoredPopover trigger={ref}>...</AnchoredPopover>
       const { showError } = useNovaToast();
       ```
-    sources: [2857, 2871, 5503, 2673, 2735, 3805, 4621, 17480, 18582, 19013, 19264]
+    sources: [2857, 2871, 5503, 2673, 2735, 3805, 4621, 17480, 18582, 19013, 19264, 3161]
 
   - title: "Conditional Rendering Readability"
     content: |
       - Use guard clauses with early `return null` for conditional rendering instead of wrapping entire JSX in ternaries
       - Extract complex inline conditionals into named helper functions or variables above the return
+      - When JSX conditionally renders multiple mutually exclusive controls, lift the booleans into named variables (`showCancelButton`, `showResumeButton`) above the return statement
       - For nested ternaries, extract into sub-components rather than `renderContent` helpers
       - Avoid `renderX()` methods — they bypass hooks composition rules and lose TypeScript type inference; extract as proper functional components instead
       - Push repeated conditional rendering logic down into child components rather than repeating ternaries in the parent
@@ -53,7 +55,7 @@ practices:
       const label = buildLabel(complex, a, b);
       return <Tag>{label}</Tag>;
       ```
-    sources: [7184, 3813, 3932, 4648, 3696, 21555, 22105, 22630, 2062, 2072]
+    sources: [7184, 3813, 3932, 4648, 3696, 21555, 22105, 22630, 2062, 2072, 27145]
 
   - title: "Modal and Drawer Lifecycle"
     content: |
@@ -83,7 +85,7 @@ practices:
 
   - title: "Form Patterns"
     content: |
-      - Use the project's `<Form>` component even for simple forms — consistency matters
+      - Use the project's `<Form>` component for any user-input submission flow — it provides native UX behaviors (submit on Enter) and accessibility (ARIA roles, focus management)
       - Inside forms, import RHF-wrapped components (e.g. from `rhf/` path), not raw design system inputs
       - The component that renders a form should own its lifecycle — don't hoist form state to a parent just to pass it down
       - Export form config (schema, defaults) as a named object, not as static properties on the component function
@@ -95,7 +97,7 @@ practices:
       // Good — RHF version wires into form context
       import { Select } from '@adapt/rhf';
       ```
-    sources: [5443, 3672, 3681, 4040]
+    sources: [5443, 3672, 3681, 4040, 26676]
 
   - title: "Error Feedback for Network Calls"
     content: |
@@ -128,6 +130,7 @@ practices:
       - Open modals immediately with skeleton content rather than blocking on async data
       - Always handle error states alongside loading states — a spinner without error fallback creates an infinite spinner on failure
       - Only use loading state indicators for genuinely async operations; setting loading flags around synchronous updates causes extra re-renders
+      - Guard rendering of data-dependent components behind a loading check — only mount them once required data exists
       - Return `null` (not `<></>`) when conditionally rendering nothing
 
       ```tsx
@@ -137,11 +140,12 @@ practices:
       // Good
       {loading ? <Skeleton width={80} /> : investmentType}
       ```
-    sources: [4898, 2629, 3795, 17480, 22308, 22594]
+    sources: [4898, 2629, 3795, 17480, 22308, 22594, 5128]
 
   - title: "Responsive Layout"
     content: |
       - Prefer CSS-based responsive design (`display: none`, responsive props) over JS conditional rendering for layout differences
+      - JS conditionals create flash of incorrect content before hydration; CSS-based hiding applies immediately
       - Multi-column layouts with financial data should collapse to single-column on mobile breakpoints
       - In responsive design systems where breakpoints cascade upward, only specify the breakpoint where the value changes — redundant entries obscure actual responsive behavior
 
@@ -152,7 +156,7 @@ practices:
       // Good — CSS handles visibility
       <Box display={{ xs: 'none', md: 'flex' }}>...</Box>
       ```
-    sources: [6570, 4925, 22763]
+    sources: [6570, 4925, 22763, 3182]
 
   - title: "Prop Naming and Structure"
     content: |
@@ -193,12 +197,14 @@ practices:
 
   - title: "Centralize URLs and Constants"
     content: |
-      - Define external URLs and cross-app links in centralized path constants (`paths.venture.*`, `lib/paths`), not inline in components
+      - Define external URLs and cross-app links in centralized path constants (`paths.venture.*`, `lib/paths`, `shared/paths.jsx`), not inline in components
+      - In Nova, always use `urlFromPathname(Pathname.X, { queryParams })` from `routes.ts` when constructing internal URLs — never hardcode URL strings
       - Extract enumerable domain data (network lists, supported currencies, status values) to a constants file; prefer sourcing from a data model or API if the list may change
       - Move static data (route paths, config objects, constant arrays) outside the component function body to avoid re-allocation on every render
+      - Extract string literals used as data attributes, animation keys, or test selectors to named constants
       - Use design system tokens for z-index values, not hardcoded numbers
-      - Establish a consistent convention for absent values in display (e.g. always EMDASH for missing data)
-    sources: [7265, 3344, 6201, 20720, 20796, 23580, 23804, 18046]
+      - Establish a consistent convention for absent values in display (e.g. always EMDASH or a named `NO_VALUE` constant for missing data)
+    sources: [7265, 3344, 6201, 20720, 20796, 23580, 23804, 18046, 27238, 26763, 26959, 7344]
 
   - title: "Video and Media Elements"
     content: |
@@ -230,6 +236,7 @@ practices:
       - Convert pixel values to design system tokens
       - Use `<Stack>` for spacing between elements, never `<br/>` tags
       - Preserve semantic HTML in list-like components — use `<Stack as='ul'>` or `<Box as='ul'>` for lists of items
+      - When touching a component file, upgrade any raw HTML elements or deprecated components (`Card`, `<b>`, `<em>`) to current ADAPT primitives — touching the file is the right time to clear design system drift
 
       ```tsx
       // Bad — raw HTML with inline styles
@@ -244,7 +251,7 @@ practices:
         </Text>
       </Stack>
       ```
-    sources: [22763, 26568, 26508, 26503, 26605, 26728, 25583, 26558, 17756, 19264, 24661]
+    sources: [22763, 26568, 26508, 26503, 26605, 26728, 25583, 26558, 17756, 19264, 24661, 27078, 27322, 6863]
 
   - title: "Don't Repeat Default Prop Values"
     content: |
@@ -407,3 +414,57 @@ practices:
       type Props = { compact?: boolean | { emphasizeLabel: boolean } };
       ```
     sources: [2303, 2322]
+
+  - title: "No index.tsx Barrel Files"
+    content: |
+      - Use flat file naming (`ComponentName.tsx`) instead of directory-with-index (`ComponentName/index.tsx`)
+      - `index.tsx` barrel files obscure filenames in editor tabs and stack traces, slow bundlers, and can introduce circular dependency issues
+      - Only create a directory for a component when it genuinely requires co-located sub-files (styles, sub-components)
+      - Don't create `index.ts` re-export files — place components in explicitly named files
+
+      ```
+      // Bad
+      components/CommitmentsRenameBanner/index.tsx
+
+      // Good
+      components/CommitmentsRenameBanner.tsx
+      ```
+    sources: [27039, 27168, 7419]
+
+  - title: "Conditional Rendering at Call Site Over show Prop"
+    content: |
+      - Prefer `{condition && <Comp />}` at the call site over a `show`/`visible` prop that gates a null return inside the component
+      - Conditional rendering keeps component contracts simple — the component always renders its content when mounted
+      - When a parent already guards rendering with a truthiness check, make the corresponding prop required in the child — don't duplicate the null guard inside the component
+
+      ```tsx
+      // Bad — show prop hides visibility logic inside component
+      <SessionIdHint show={!!sessionId} sessionId={sessionId} />
+
+      // Good — parent controls visibility, child prop is required
+      {sessionId && <SessionIdHint sessionId={sessionId} />}
+      ```
+    sources: [26826, 26826]
+
+  - title: "Props vs Args Type Naming"
+    content: |
+      - Name React component parameter types with the `Props` suffix (e.g. `ButtonProps`, `StackableCalloutProps`)
+      - Reserve the `Args` suffix for pure business logic / graph-layer functions
+      - This distinction signals to readers whether they're looking at a UI component interface or a logic function interface
+      - Avoid Hungarian notation — no `I` prefix on type names
+
+      ```tsx
+      // Bad — Args suffix on a component
+      interface Args { label: string; onClick: () => void; }
+
+      // Good
+      type Props = { label: string; onClick: () => void; };
+      ```
+    sources: [5917]
+
+  - title: "Component File Organization"
+    content: |
+      - One component per file — if a component is reused in multiple places, give it its own file; if used only once, define it inline at the usage site
+      - Colocate types and builder functions with the component that defines them, not in a separate `helpers.ts`
+      - Truly shared types (used across multiple components) can live in a `shared.tsx`; component-specific types belong in the component file itself
+    sources: [26890, 26890]

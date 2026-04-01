@@ -379,19 +379,24 @@ practices:
   - title: "Sorbet Type Safety"
     content: |
       - New files: minimum `# typed: true`, never `# typed: false`; don't use `strict` in specs
+      - Don't bump a file to `# typed: strict` unless you can fix all strict-level errors in the same PR — use `# typed: true` as the baseline
+      - Sorbet sigil goes at the very top of the file — above even `# frozen_string_literal: true`
       - Avoid `T.untyped` when concrete types are known; use `T::Struct` over loose hash types
       - Use `SorbetTypes::Unsafe::DateOrTime` for date/time params; compose type aliases from existing ones
       - Prefer `.first!`/`.last!` over `.first` + `T.must` — better errors (`RecordNotFound`)
       - Use `T.cast` to narrow union types, not `is_a?` guards (which change runtime behavior) or `T.unsafe`
+      - Never use `T.unsafe` in production code — correct the underlying type declaration (e.g., the RBI shim) so it matches reality
       - Fix upstream signatures rather than using `T.cast` at call sites
       - Avoid `.checked(:never)` — it disables runtime type checking
       - Use `.void` for methods whose return values are not consumed by callers
-      - Adding `void` signatures to existing methods can break tests asserting on the return value — update tests or reconsider the return type
       - When using `T.must`, assert once by extracting to a local variable rather than repeating at every usage
       - Use `is_a?` for Sorbet type narrowing, not `.in?([...])` — Sorbet narrows types after `is_a?` but not after `.in?`
       - Compose Sorbet type aliases from existing aliases rather than duplicating inline type unions
       - When mapping nilable attributes then calling `first!`/`last!`, insert `.compact` before `.sort` to give Sorbet a non-nilable element type
       - Pre-commit hooks (like Rubocop autocorrect) can silently change Sorbet sigils (e.g., `# typed: true` → `# typed: strict`); review autocorrected sigil changes
+      - Use `T.let` only when type inference would be ambiguous — empty collection init (`T.let([], T::Array[MyType])`) or nilable with nil default; omit otherwise
+      - Extract safe-navigation chains (`a&.b&.c`) into local variables before conditionals — Sorbet's flow-sensitive typing works on local variables, not on method call chains
+      - Prefer specific Sorbet types over broad catch-all unions like `SorbetTypes::Json` when the actual shape is known
 
       ```ruby
       # Bad – T.must on AR result
@@ -400,7 +405,7 @@ practices:
       # Good – bang method with domain error
       investment = Investment.where(active: true).first!
       ```
-    sources: [21222, 26103, 26101, 21319, 23811, 26503, 21290, 17046, 26312, 26193, 25118, 18580, 23830, 24584, 26408, 19604, 19466, 18205, 21070, 26312, 26193]
+    sources: [21222, 26103, 26101, 21319, 23811, 26503, 21290, 17046, 26312, 26193, 25118, 18580, 23830, 24584, 26408, 19604, 19466, 18205, 21070, 26960, 26774, 26932, 1290, 5498, 7040]
 
   - title: "Sorbet with Rails Dynamism"
     content: |

@@ -72,7 +72,7 @@ export const UserCardFragment = gql`
 const UserCard = ({ data }: { data: UserCardFragment }) => ...
 ```
 
-_Sources: PR #2698, PR #2667, PR #3681, PR #3884, PR #6285, PR #6365, PR #6845, PR #3985, PR #21896, PR #23015, PR #22763, PR #24289, PR #25099, PR #18322, PR #18332, PR #18582, PR #23731, PR #25707, PR #19686_
+_Sources: PR #2698, PR #2667, PR #3681, PR #3884, PR #6285, PR #6365, PR #6845, PR #3985, PR #21896, PR #23015, PR #22763, PR #24289, PR #25099, PR #18322, PR #18332, PR #18582, PR #23731, PR #25707, PR #19686, PR #5513_
 
 ### Apollo Cache: Always Include id
 
@@ -102,12 +102,13 @@ _Sources: PR #6570, PR #2667_
 - Return the full entity type from mutations so Apollo can auto-update its normalized cache
 - For updates, rely on Apollo's automatic cache normalization — don't refetch
 - For deletes, use `cache.evict({ id })` + `cache.gc()` instead of refetching
+- Prefer returning the affected fragment directly in the mutation response over `refetchQueries` — Apollo's normalized cache updates the component automatically; reserve `refetchQueries` for mutations with wide-reaching side effects across multiple queries
 - Before adding `refetchQueries`, verify whether Apollo's cache should already handle the update — investigate root cause (mismatched response shape, incorrect cache logic) first
 - For creates, use targeted cache insertion rather than refetching the entire parent query
 - Return the affected parent object from mutations so the frontend cache can update children automatically
 - Custom mutation hooks should return `[mutationFn, mutationResult] as const` matching Apollo's useMutation API
 
-_Sources: PR #6277, PR #6365, PR #6544, PR #23197, PR #25099, PR #25594, PR #24011, PR #26308_
+_Sources: PR #6277, PR #6365, PR #6544, PR #23197, PR #25099, PR #25594, PR #24011, PR #26308, PR #26930_
 
 ### Pothos: fieldWithInput and Inline Args
 
@@ -153,6 +154,9 @@ _Sources: PR #4086, PR #3914, PR #6166_
 - When required data is missing in a resolver, raise an explicit error — never silently return nil or empty defaults
 - Always capture GraphQL mutation responses on the frontend and use error-handling utilities (`throwIfGraphQLError`)
 - Rescue only specific error classes in mutations — generic `StandardError` rescue blocks hide real bugs
+- For private/restricted resource lookups, always return a generic not-found error — returning a specific "inaccessible" error confirms the resource exists and constitutes information disclosure
+- Wrap mutation calls in `try/catch` on the frontend; optimistic UI updates can run before `await`, but failures must be caught explicitly — Apollo/urql don't always throw by default in all configurations
+- In graphql-ruby, `rescue_from` accepts multiple exception classes as positional args for grouping related handlers; use separate `rescue_from` blocks for unrelated exceptions — they fire in file order, avoiding internal conditional branching
 
 ```ruby
 # Bad — silent nil on missing data
@@ -167,7 +171,7 @@ def resolve(id:)
 end
 ```
 
-_Sources: PR #5834, PR #5409, PR #23294, PR #23455, PR #24172, PR #25370, PR #23640, PR #22041, PR #20819, PR #23689, PR #18975, PR #21324, PR #22307_
+_Sources: PR #5834, PR #5409, PR #23294, PR #23455, PR #24172, PR #25370, PR #23640, PR #22041, PR #20819, PR #23689, PR #18975, PR #21324, PR #22307, PR #27322, PR #27168, PR #5798_
 
 ### Schema Typing: Precision Over Generics
 
@@ -205,6 +209,8 @@ _Sources: PR #3681, PR #5464, PR #5377, PR #5968, PR #17700, PR #22824, PR #1904
 - Only add preloads to a resolver if the association is required by every query using it; for optional fields, use batch loaders
 - When adding fields to widely-used types, consider the blast radius — a new association on a shared type creates N+1s for every consumer
 - When adding association traversals in shared concerns, be aware of the N+1 multiplication effect — flag for monitoring and proactively add preloading at known call sites
+- When a resolver on an association is consistently slow, check whether the underlying DB table has the necessary index — resolver-level workarounds may hide the root cause
+- Use canonical cached attributes (e.g., `cached_fund_inception_date`) rather than recomputing from raw associations in resolvers — recomputing creates N+1s in list context and silently diverges when domain definitions change
 
 ```ruby
 # Bad — N+1 in list context
@@ -222,7 +228,7 @@ def settings
 end
 ```
 
-_Sources: PR #2859, PR #3801, PR #4319, PR #5579, PR #3493, PR #17700, PR #22630, PR #25783, PR #25648, PR #18282, PR #25035, PR #23047, PR #24189, PR #24155, PR #22552, PR #22343, PR #25376_
+_Sources: PR #2859, PR #3801, PR #4319, PR #5579, PR #3493, PR #17700, PR #22630, PR #25783, PR #25648, PR #18282, PR #25035, PR #23047, PR #24189, PR #24155, PR #22552, PR #22343, PR #25376, PR #6739, PR #26994_
 
 ### Schema Organization
 
@@ -236,8 +242,11 @@ _Sources: PR #2859, PR #3801, PR #4319, PR #5579, PR #3493, PR #17700, PR #22630
 - GraphQL connection and type class namespacing should mirror the schema hierarchy — a connection type belongs under the parent type that uses it
 - When adding new types that share fields/behavior with existing types (e.g., different parsable document types), define a shared interface to enforce consistency
 - Namespace third-party integration queries under their domain rather than polluting the top-level query type
+- Delete `.graphql` files when removing their last consumer — orphaned query files accumulate silently and mislead future developers into thinking the type or field is still in use
+- Admin/internal list queries should apply an explicit limit even if the table starts small — without a limit, the query silently degrades as data accumulates
+- When introducing a new resolver that returns records also surfaced by an existing resolver, verify both use identical filtering criteria — divergent WHERE clauses between count and list queries produce confusing UI discrepancies
 
-_Sources: PR #3080, PR #4946, PR #5425, PR #22554, PR #24068, PR #23750, PR #22763, PR #25400, PR #25982, PR #22581, PR #20684, PR #20887_
+_Sources: PR #3080, PR #4946, PR #5425, PR #22554, PR #24068, PR #23750, PR #22763, PR #25400, PR #25982, PR #22581, PR #20684, PR #20887, PR #26763, PR #5540, PR #6870_
 
 ### Data Layer Composition
 
@@ -278,8 +287,14 @@ _Sources: PR #17582, PR #17607, PR #18168, PR #23249, PR #19466, PR #20284_
 - When refactoring methods off a model, grep for implicit GraphQL field resolution — graphql-ruby calls `object.method_name` when no explicit resolver is defined
 - When exposing Ruby enum/value objects, explicitly serialize to a string or scalar — Ruby's default `#to_s` produces internal representations
 - All new GraphQL mutation/type files must use `# typed: strict` — never `typed: false` or `typed: true`; enforce this as a hard rule in code review
+- Every new or modified method must ship with a Sorbet `sig` block — this is a hard team standard, not best-effort
 - Use the `GraphQL::` namespace (uppercase QL), not `Graphql::` — in Ruby they are different constants and mixing them risks accidental method overwrites in open modules
 - Use the `object_type` class method on GraphQL type classes to declare the expected Ruby object type — provides Sorbet static type checking and catches type mismatches at compile time rather than runtime
+- For BatchLoader-backed fields, use `BatchLoader::GraphQL` as the Sorbet return type — not `T.untyped`; check existing type files in the same module for the convention
+- For mutation return hashes, use Sorbet typed shape syntax (`returns({ key: Type })`) rather than `T::Hash[Symbol, T.any(...)]` — it gives Sorbet per-key type information and matches codebase conventions
+- Use `||=` with `T.let` for memoized instance variables: `@cached ||= T.let(nil, T.nilable(T::Boolean))`
+- In filtering resolvers, ensure the narrowed scope is explicitly returned — Ruby's implicit return (last expression) can mask bugs when filtering logic is multi-line
+- Add nil guards in resolvers for join columns that could be null even when "almost always" populated — silent nil propagation through GraphQL fields is harder to debug than an explicit filter; if a field truly should never be null, add a DB constraint instead
 
 ```ruby
 # Bad — redundant resolver method
@@ -299,7 +314,7 @@ def has_agreements?
 end
 ```
 
-_Sources: PR #20284, PR #23876, PR #17607, PR #18395, PR #18370, PR #22979, PR #19762, PR #26503, PR #23053, PR #23682, PR #22227, PR #22444, PR #25258, PR #25333, PR #25982, PR #22630_
+_Sources: PR #20284, PR #23876, PR #17607, PR #18395, PR #18370, PR #22979, PR #19762, PR #26503, PR #23053, PR #23682, PR #22227, PR #22444, PR #25258, PR #25333, PR #25982, PR #22630, PR #26796, PR #26935, PR #26934, PR #6912, PR #5596, PR #6870_
 
 ### Mutation Design Patterns
 
@@ -313,6 +328,9 @@ _Sources: PR #20284, PR #23876, PR #17607, PR #18395, PR #18370, PR #22979, PR #
 - Avoid generic nested field names like `input` that produce `input: { input: { ... } }` at the call site — use domain-specific names (e.g., `form1065Input`)
 - For mutations with multiple possible owner types, use a required polymorphic pair (enum type + ID) rather than multiple optional ID fields — makes the invariant structural
 - Name mutations after the specific operation (`syncMembersToVenture`) — not vague prefixes like `fix`
+- Include idempotency guards (`find_or_create_by`, upsert, or explicit existence checks) for mutations clients may retry on transient errors — double-submits and network retries are common in GraphQL clients
+- Wrap multiple related DB writes in a transaction — a failure mid-mutation otherwise leaves data in an inconsistent state; this is critical in financial/payment contexts
+- Use separate `CreateInputType` and `UpdateInputType` when Create and Update have different required fields — sharing a single input type forces all fields optional, pushing required-field validation into the mutation body instead of the service
 
 ```ruby
 # Bad — positional args, generic naming
@@ -327,7 +345,7 @@ def perform(fundraising_campaign_id:, name:)
 end
 ```
 
-_Sources: PR #25493, PR #23640, PR #23936, PR #18370, PR #18582, PR #25216, PR #23508, PR #22526, PR #24028, PR #18332, PR #25798, PR #22470, PR #26502, PR #25593, PR #24089, PR #17167_
+_Sources: PR #25493, PR #23640, PR #23936, PR #18370, PR #18582, PR #25216, PR #23508, PR #22526, PR #24028, PR #18332, PR #25798, PR #22470, PR #26502, PR #25593, PR #24089, PR #17167, PR #3696, PR #5518, PR #6774_
 
 ### Apollo Client Patterns
 

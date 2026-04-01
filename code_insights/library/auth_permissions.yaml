@@ -259,6 +259,7 @@ practices:
       - Methods that perform authorization should be named to reflect it — a method named `load_*` that secretly checks permissions surprises callers
       - Prefer the codebase's established auth pattern (Pundit policies) over ad-hoc inline auth checks in controllers
       - Methods that intentionally raise on auth failure should use `authorize_*!` or `assert_*!` naming
+      - Auth variables must accurately reflect the permission they encode — `isManager` used to gate a view-only action misleads future engineers about the required permission level
 
       ```ruby
       # Bad — name hides auth responsibility
@@ -272,7 +273,7 @@ practices:
       account = InvestAccount.find(params[:id])
       authorize_invest_account!(account)
       ```
-    sources: [20769]
+    sources: [20769, 2916]
 
   - title: "Security Feature Toggles Must Default to Enforced"
     content: |

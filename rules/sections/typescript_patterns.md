@@ -122,6 +122,7 @@ _Sources: PR #5968, PR #6043, PR #6108, PR #6575_
 - Prefer `prop: T | undefined` over `prop?: T` when the key must always exist but the value may be absent.
 - When an auth guard guarantees a value exists, don't mark it optional in downstream signatures.
 - Guard rendering upstream (conditional render while loading) rather than making child props nullable.
+- When adding a null/undefined guard inside a function body, update the parameter type to include `null | undefined` — failing to do so creates dead code in strict mode and obscures intent.
 
 ```typescript
 // Bad — callers can silently omit categoryKey
@@ -130,14 +131,18 @@ interface EmailConfig { categoryKey?: string; }
 // Good — TypeScript enforces every caller provides it
 interface EmailConfig { categoryKey: string; }
 
-// Bad — key can be omitted entirely
-type Context = { balance?: BaseMoney };
+// Bad — guard is unreachable; type never includes null
+function append(params: Record<string, string | boolean>) {
+  if (params.value == null) return; // TS strict: disjoint check
+}
 
-// Good — key always present, value may be undefined
-type Context = { balance: BaseMoney | undefined };
+// Good — type matches runtime behavior
+function append(params: Record<string, string | boolean | null | undefined>) {
+  if (params.value == null) return;
+}
 ```
 
-_Sources: PR #5558, PR #5565, PR #4762, PR #2690, PR #3462, PR #6808_
+_Sources: PR #5558, PR #5565, PR #4762, PR #2690, PR #3462, PR #6808, PR #27292_
 
 ### Avoid TypeScript Enums — Use Const Objects or Zod
 
@@ -242,6 +247,9 @@ _Sources: PR #5539, PR #6421, PR #3101, PR #4621, PR #4453_
 - `new Set()` does not deduplicate objects by value — use a Map keyed by unique property.
 - When using `'prop' in obj` as a type discriminant, ensure all union members formally declare or explicitly omit the discriminating property — relying on implicit absence is fragile.
 - Prefer an explicit truthiness guard (`obj &&`) over optional chaining (`obj?.prop`) when you need TypeScript to narrow the type for an entire expression — the guard narrows downstream access, eliminating the need for `?.`.
+- Avoid `.filter(Boolean)` on `number[]` — `Boolean(0)` is `false`, so it silently drops `0`. Use a type-specific predicate: `(el) => typeof el === 'number' && !Number.isNaN(el)`.
+- Use `.at(0)` over `[0]` for first-element access — `.at(0)` returns `T | undefined`, enabling the type system to catch missing null checks; `[0]` returns `T` and masks potential undefined.
+- Use `instanceof` for error type discrimination — tag/cause property checks are fragile and bypass TypeScript's structural narrowing.
 
 ```typescript
 // Bad — inline check, no narrowing
@@ -250,15 +258,21 @@ items.filter(x => typeof x === "string");
 // Good — type guard narrows the result type
 items.filter(isString);
 
-// Bad — 'size' in item relies on implicit absence in SectionItem
-if ('size' in item) { /* RowItem path */ }
+// Bad — silently drops 0
+ids.filter(Boolean);
 
-// Good — discriminating property is formal in both union members
-type RowItem = { size: InputSize; ... };
-type SectionItem = { size?: never; ... };
+// Good — type-specific predicate
+ids.filter(id => typeof id === "number" && !Number.isNaN(id));
+
+// Bad — [0] returns T, hides undefined
+const account = vbas[0];
+
+// Good — .at(0) returns T | undefined, forces null check
+const account = vbas.at(0);
+if (!account) return errAsync(new NotFoundError("account"));
 ```
 
-_Sources: PR #6348, PR #7002, PR #6056, PR #5238, PR #2303, PR #20821_
+_Sources: PR #6348, PR #7002, PR #6056, PR #5238, PR #2303, PR #20821, PR #26885, PR #6353_
 
 ### Lookup Tables: Encapsulate Access with Fallbacks
 
@@ -303,19 +317,20 @@ _Sources: PR #6977, PR #3716, PR #5485_
 - Don't ship unused exports speculatively — add them when they have a consumer.
 - Remove redundant type annotations that TypeScript can infer — they add noise and go stale.
 - Use TypeScript `private` keyword over JS `#private` fields for consistency with other access modifiers.
+- Functions re-exported through multiple barrel `index.ts` files must have explicit return type annotations — TypeScript inference doesn't always survive multi-level re-exports, causing callers to see `unknown`.
 
 ```typescript
 // Bad — speculative export, no consumer
 export const unusedHelper = () => {};
 
-// Bad — redundant annotation on inferred callback
-items.map((item: Item) => item.id);
+// Bad — return type lost through barrel re-exports
+export function buildQuery() { return { where: ... }; }
 
-// Good — let TS infer
-items.map(item => item.id);
+// Good — explicit annotation guarantees consumers see the correct type
+export function buildQuery(): QueryOptions { return { where: ... }; }
 ```
 
-_Sources: PR #6240, PR #4699, PR #3706, PR #6808_
+_Sources: PR #6240, PR #4699, PR #3706, PR #6808, PR #7381_
 
 ### Simplify Type Definitions
 

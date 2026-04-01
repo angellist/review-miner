@@ -1,3 +1,10 @@
 topic: feature_flags
-scope: all
-practices: []
+scope: fullstack
+practices:
+  - name: Gate Admin-Visible Features Behind Flags
+    description: |
+      - Use a feature flag when shipping UI visible to internal admins or customer-facing staff, even if it's not customer-facing.
+      - Don't rely on coordinated communication to prevent surprise — flags decouple deployment from rollout.
+      - Enable the flag only after stakeholders (e.g. Customer Relations) have been informed and prepared.
+    sources:
+      - pr: 26890

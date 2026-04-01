@@ -127,8 +127,11 @@ _Sources: PR #3678, PR #3805_
 - When removing a feature, search the whole file (and related files) for associated constants, enums, and config arrays — partial cleanup leaves dead code that misleads future readers
 - When refactoring service methods, audit the parameter list for values no longer used in the method body — dead parameters confuse callers
 - Before adding a new data section or abstraction, check whether the information can be derived from existing data — consolidating overlapping data sources reduces code complexity and maintenance burden
+- When inlining a helper method, immediately delete the original definition — inlining is only complete when the extracted method is gone
+- When deleting or moving a function during a refactor, do a cross-file search for all usages before merging — stale references may not surface at compile time if the removal hasn't landed yet
+- Remove "just in case" abstractions (enums, constants, layers) when there is no realistic future need — if a reviewer and author agree an abstraction will never expand, deleting it is the right call (YAGNI)
 
-_Sources: PR #2762, PR #4756, PR #4633, PR #17365, PR #22900, PR #25792, PR #23050_
+_Sources: PR #2762, PR #4756, PR #4633, PR #17365, PR #22900, PR #25792, PR #23050, PR #26839, PR #7325, PR #1207_
 
 ### Split Behavior Variants Instead of Boolean Flags
 
@@ -337,8 +340,9 @@ _Sources: PR #22511, PR #23946_
 - Provide accessor methods that return only primitive identifiers (IDs, strings) rather than full model objects
 - Re-export constants consumers need in the public API class — don't leak internal implementation references
 - After merging services into a monolith, convert network calls to direct in-process calls via a public API boundary layer
+- When using packwerk, reference cross-pack constants through the pack's public API namespace (e.g., `DIBSApi::Constants::NOC_CODE_C*`) — direct string literals or internal constant references bypass packwerk enforcement and make violations invisible until CI runs
 
-_Sources: PR #18152, PR #18697, PR #18580_
+_Sources: PR #18152, PR #18697, PR #18580, PR #7039_
 
 ### Replace Magic Numbers With Named Model Methods
 
@@ -443,13 +447,18 @@ _Sources: PR #19835, PR #23783, PR #24313_
 - If a rule consistently doesn't apply to the codebase, disable it project-wide in the Biome config — don't annotate every instance
 - Use suppress comments only as a last resort for legacy code, with an explicit follow-up to address root causes
 - Suppress comments accumulate debt and hide real issues from future reviewers
+- When `biome-ignore` or non-null assertions cluster at call sites, treat it as a signal the method's type signature doesn't match reality — widen the parameter type and handle the edge case inside the method
 
 ```typescript
-// Bad — suppressing instead of fixing
-// biome-ignore lint/suspicious/noUnusedImports
-import { OldHelper } from './helpers';
+// Bad — suppressing type mismatch at every call site
+// biome-ignore lint/...
+processUrl(value!)
 
-// Good — remove the unused import
+// Good — fix the signature; handle nil internally
+function processUrl(url: string | null | undefined) {
+  const resolved = url ?? defaultUrl;
+  ...
+}
 ```
 
-_Sources: PR #46_
+_Sources: PR #46, PR #26959_

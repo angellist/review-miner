@@ -66,6 +66,7 @@ _Sources: PR #4003_
 
 - Use `Promise.all` for independent async lookups in resolvers and handlers
 - For conditional parallel work, use the spread-conditional pattern inside `Promise.all`
+- When making independent HTTP calls per item in a collection, use `promiseUtils.map` instead of sequential `await` in a loop — sequential calls compound latency with list size
 
 ```typescript
 // Bad — sequential when operations are independent
@@ -80,7 +81,7 @@ const [account, mmf] = await Promise.all([
 ]);
 ```
 
-_Sources: PR #5834, PR #4058_
+_Sources: PR #5834, PR #4058, PR #7418_
 
 ### Cap Database Concurrency
 
@@ -281,6 +282,21 @@ _Sources: PR #24291_
 - Use `touch` or callbacks to propagate changes when associated records change independently of the indexed model
 
 _Sources: PR #25190_
+
+### Prefer Cached Columns Over Cross-Service Calls
+
+- When a model caches external data (e.g., `recipient_cached_name`), use it instead of calling an external service for display values
+- Cross-service calls inside loops or batch processors compound latency proportionally to list size
+- Cached columns are the canonical source for point-in-time values — they capture the value as it was at the time of the event
+
+_Sources: PR #27146_
+
+### Cache External Auth Tokens
+
+- Don't fetch a new OAuth or JWT token on every outbound API call — cache it and reuse within its validity window
+- Refresh only when expired; per-request token fetching adds latency and increases rate-limit risk
+
+_Sources: PR #5576_
 
 ### Never Fetch Assets from Source Control at Runtime
 
