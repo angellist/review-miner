@@ -28,6 +28,7 @@ _Sources: PR #2874, PR #2729, PR #5075_
 - Randomize all IDs and unique fields in E2E seeders — hardcoded values cause collisions in parallel runs
 - Use insert, not upsert, in seeders; upsert masks ID collision problems
 - Never use `jest.setTimeout` or serial patterns to avoid shared-state conflicts
+- When a service changes from ID-based to value-based matching (account numbers, routing numbers), audit factories for numeric sequence overlap; use distinct base values per factory (e.g., `10_000_000` vs `20_000_000`) to prevent subtle collisions
 
 ```typescript
 // Bad — destroys parallel execution
@@ -38,13 +39,15 @@ jest.setTimeout(30000);
 const org = await createOrg({ handle: randomHandle() });
 ```
 
-_Sources: PR #3642, PR #6808_
+_Sources: PR #3642, PR #6808, PR #6983_
 
 ### Black-Box Testing over Mock Verification
 
 - Assert on outputs and side effects, not on whether specific internal functions were called
 - Mock-invocation assertions break when internals are refactored and don't prove correctness
 - If mocking is necessary, validate the resulting output
+- Prefer creating real DB records over mocking object creation; tests that exercise real code paths are simpler and catch more bugs
+- AI-generated tests are prone to over-mocking — always review for this pattern
 
 ```typescript
 // Bad — coupled to implementation
@@ -55,7 +58,7 @@ const result = await handler(input);
 expect(result.status).toBe("completed");
 ```
 
-_Sources: PR #6108_
+_Sources: PR #6108, PR #5529_
 
 ### Cover Edge Cases Explicitly
 
@@ -65,6 +68,7 @@ _Sources: PR #6108_
 - For regex, include false-positive inputs that superficially resemble the pattern
 - For mutations, assert unchanged fields were not accidentally modified
 - For services that operate on parallel/sibling entities, add a test for sequential calls — one sibling's operation can silently undo another's state changes if the resolution check is too narrow
+- When a service operates on an associated record (e.g., a trust's control person), assert directly on that nested entity — not on a parent or sibling record
 
 ```typescript
 // Mutation test — verify no side effects on untouched fields
@@ -74,7 +78,7 @@ expect(member.name).toBe("New Name");
 expect(member.role).toBe("admin"); // unchanged field preserved
 ```
 
-_Sources: PR #5995, PR #3004, PR #3129, PR #2729, PR #3407, PR #18479_
+_Sources: PR #5995, PR #3004, PR #3129, PR #2729, PR #3407, PR #18479, PR #1087_
 
 ### Derive Test Values from Source-of-Truth Constants
 
@@ -131,6 +135,7 @@ _Sources: PR #6808, PR #7227, PR #7132_
 - For mutually exclusive predicates, define a truth table mapping all inputs to expected outputs
 - Assert true for the matching type and false for all others in a single loop
 - This prevents false positives from untested combinations and scales as variants are added
+- When testing functions that handle a set of error types or enum values, cross-reference the enum definition against the test file to ensure every variant has a test
 
 ```typescript
 const expected: Record<TransferType, boolean> = {
@@ -141,7 +146,7 @@ for (const [type, result] of Object.entries(expected)) {
 }
 ```
 
-_Sources: PR #6083_
+_Sources: PR #6083, PR #3147_
 
 ### E2E Infrastructure Safety
 
@@ -190,8 +195,9 @@ _Sources: PR #5377_
 - Don't skip flaky tests indefinitely — either delete them or invest in fixing them
 - Skipped tests accumulate as tech debt with no owner and give a false sense of coverage
 - If keeping a flaky test, add diagnostic output (e.g., print backtraces on failure) so the root cause can be found
+- Don't use CI retry configuration to paper over flaky tests — retries hide real failures, slow feedback, and erode trust in CI over time; fix the underlying flakiness instead
 
-_Sources: PR #22190_
+_Sources: PR #22190, PR #5319_
 
 ### Keep PRs Focused — Revert Unrelated Changes
 
@@ -268,3 +274,22 @@ norm_a == norm_b
 ```
 
 _Sources: PR #18496_
+
+### Clean Up Feature Flags at 100% Rollout
+
+- Remove Flipper/feature flag references from tests and application code when a flag reaches 100% rollout
+- A flag at 100% is effectively always-on; leaving it adds noise and makes tests harder to read
+- Reviewers should flag residual feature-flag checks as part of normal code review
+
+```ruby
+# Bad — flag at 100%, still checked in spec
+context "with feature enabled" do
+  before { Flipper.enable(:new_transfer_flow) }
+  it { ... }
+end
+
+# Good — remove the flag branch entirely
+it { ... }
+```
+
+_Sources: PR #5808_

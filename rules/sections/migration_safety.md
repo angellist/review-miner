@@ -141,8 +141,9 @@ _Sources: PR #5398, PR #5646, PR #3447_
 - Document the intended final shape so future developers know the migration plan
 - Minimize consumers of temporary APIs to reduce migration burden
 - Place data on the model that conceptually owns it, even if another location is more convenient
+- When integrating with an external service still using ordinal IDs before a UUID migration, precompute the ordinal-to-UUID mapping once upfront (not per-record) and document the workaround, what needs to change, and who to coordinate with
 
-_Sources: PR #5401, PR #4463_
+_Sources: PR #5401, PR #4463, PR #26422_
 
 ### Name Fields for What They Are, Not What They Might Become
 
@@ -160,28 +161,30 @@ _Sources: PR #5398, PR #4463, PR #19466_
 - Destructive migrations (dropping tables/columns) must be in a follow-up PR after the code that removes references
 - Independent PRs allow independent rollback and simpler review
 
-_Sources: PR #17607, PR #19191, PR #20356, PR #23668, PR #24883, PR #25118, PR #26024, PR #26115, PR #23862_
+_Sources: PR #17607, PR #19191, PR #20356, PR #23668, PR #24883, PR #25118, PR #26024, PR #26115, PR #23862, PR #5864_
 
 ### Three-Step Column Drop in Rails
 
-- Add `self.ignored_columns` to the model and deploy
-- Deploy the migration that drops the column
-- Remove the `ignored_columns` entry in a follow-up PR
-- The `ignored_columns` entry prevents ActiveRecord from reading the column mid-deploy
+- In the same PR: add `self.ignored_columns` to the model AND make the column nullable — deploy this first
+- In a follow-up PR: drop the column via migration
+- After the drop deploys: remove the `ignored_columns` entry in a third PR
+- Making the column nullable in step 1 prevents NOT NULL violations on INSERT from old pods still running
+- Never use `safety_assured` to skip this sequence — it causes every query touching the model to fail during rolling deploys
 
 ```ruby
-# Step 1 — deploy first
+# Step 1 — same PR: make nullable + add ignored_columns, deploy
 class Fund < ApplicationRecord
   self.ignored_columns += ["legacy_status"]
 end
+# migration: change_column_null :funds, :legacy_status, true
 
-# Step 2 — deploy migration after step 1 is live
+# Step 2 — follow-up PR: drop the column
 remove_column :funds, :legacy_status
 
 # Step 3 — remove ignored_columns entry after migration runs
 ```
 
-_Sources: PR #21359_
+_Sources: PR #21359, PR #5112, PR #5114, PR #6572_
 
 ### Multi-Step Field Rename and Deprecation
 
@@ -189,6 +192,7 @@ _Sources: PR #21359_
 - Follow add new → backfill → remove old across separate PRs
 - Audit all related methods during parameter renames — remove deprecated methods entirely rather than updating them
 - For cross-service field migrations, make both old and new fields nilable with an at-least-one validation during transition
+- When renaming a string-stored enum value in the DB, build backward-compatible lookups that accept both old and new values until all existing records have been migrated
 - Document the phased plan in the PR description so reviewers can verify the full path
 
 ```ruby
@@ -199,9 +203,12 @@ rename_column :funds, :old_name, :new_name
 add_column :funds, :new_name, :string
 # backfill script: Fund.update_all("new_name = old_name")
 # follow-up PR: remove_column :funds, :old_name
+
+# String enum rename: accept both during transition
+scope :for_purpose, ->(p) { where(purpose: [p, LEGACY_PURPOSE_MAP[p]]) }
 ```
 
-_Sources: PR #21434, PR #24898, PR #17715, PR #24267, PR #20065_
+_Sources: PR #21434, PR #24898, PR #17715, PR #24267, PR #20065, PR #6947_
 
 ### Fail Fast on Unresolvable IDs During Migrations
 
@@ -288,7 +295,7 @@ class AddCleanup < ActiveRecord::Migration[7.0]
 end
 ```
 
-_Sources: PR #17786_
+_Sources: PR #17786, PR #6598_
 
 ### Large Table Migration Safety
 
@@ -320,21 +327,25 @@ _Sources: PR #18892, PR #24000, PR #24964_
 ### One-Time Script Lifecycle
 
 - Reserve rake tasks for scheduled, recurring jobs — use service objects callable from console for one-time operations
+- One-off migration and backfill scripts belong in `app/services/backfills/` — developer-named directories (`klayton_scripts/`) must never be committed
 - Check in backfill scripts for auditability, execute them, then remove in a follow-up PR
 - Keep backfill concerns out of the domain model's public API — isolate them in dedicated scripts
 - Don't leave one-time scripts in the codebase after they've served their purpose
+- When adding a data migration to populate records, audit seed files for the same data — duplicate sources cause constraint violations and local dev divergence
 - Preserve single-record entry points used by backfill workflows — consolidating into batch-only methods breaks selective processing
 
-_Sources: PR #20284, PR #21824, PR #24883, PR #25349, PR #17648, PR #24182_
+_Sources: PR #20284, PR #21824, PR #24883, PR #25349, PR #17648, PR #24182, PR #5279, PR #7245_
 
 ### Scope Bulk Migration Filters Narrowly
 
 - Verify migration filters are narrow enough — "all X for Y" when it should be "all X of type Z for Y" silently corrupts unrelated records
+- Audit the target model's state machine for non-terminal transitions that could move records in or out of your intended scope — filter by a state only if that state is terminal
+- When a state is not terminal, use a broader scope and rely on idempotency guards to safely skip already-processed records
 - When processing financial records in bulk, always enforce deterministic ordering by transaction date
 - Use `index_by` (not `group_by`) when building lookup hashes where each key maps to exactly one record
 - Only clear state for specific steps being re-executed — blanket resets invalidate completed milestones
 
-_Sources: PR #23596, PR #22237, PR #22347, PR #19785_
+_Sources: PR #23596, PR #22237, PR #22347, PR #19785, PR #5422_
 
 ### Stage-Aware Error Handling in Multi-Stage Migrations
 
@@ -500,3 +511,78 @@ _Sources: PR #25396, PR #20198_
 ```
 
 _Sources: PR #24331_
+
+### Data Migrations Must Use up/down, Not change
+
+- Data migrations — those that backfill or modify existing rows — must use explicit `up` and `down` methods
+- ActiveRecord cannot automatically reverse data changes; `change` (or a unified method) breaks rollback
+- Always write the inverse operation in `down` when a migration touches rows
+
+```ruby
+# Bad — cannot be reversed
+def change
+  User.where(status: nil).update_all(status: "active")
+end
+
+# Good — reversible
+def up
+  User.where(status: nil).update_all(status: "active")
+end
+
+def down
+  User.where(status: "active").update_all(status: nil)
+end
+```
+
+_Sources: PR #5769_
+
+### Enforce Constraints at Both DB and ActiveRecord Layers
+
+- A NOT NULL database constraint prevents invalid writes but gives no user-facing error message
+- An ActiveRecord `validates presence: true` catches the error early but can be bypassed by direct writes
+- Add both: the validation for clean error messages, the DB constraint as the final safety net
+- When adding replacement columns during a re-encryption or restructuring migration, explicitly verify NOT NULL constraints are carried over to new columns
+
+```ruby
+# migration
+change_column_null :accounts, :ach_id, false
+
+# model
+validates :ach_id, presence: true
+```
+
+_Sources: PR #5764, PR #5873, PR #7101_
+
+### Cross-Service References Use String Columns, Not Foreign Keys
+
+- Database-level FK constraints require both tables to exist in the same database
+- When a referenced model lives in a separate service/database (e.g., Ipseity entities referenced from Treasury), use a plain string/UUID column
+- Enforce the relationship integrity at the application layer instead
+- Do not use `references` with `foreign_key: true` for cross-service IDs
+
+```ruby
+# Bad — FK requires same DB
+add_reference :dibs_jpm_parties, :entity, foreign_key: true
+
+# Good — cross-service reference as string
+add_column :dibs_jpm_parties, :entity_id, :string, null: false
+```
+
+_Sources: PR #7190_
+
+### Reserve Removed Protobuf Fields
+
+- When removing fields from a protobuf/gRPC definition, mark both field numbers and names as `reserved`
+- Reusing a removed field number in a future proto version causes silent wire-format collisions in clients still on the old schema
+- Reserving names prevents accidental reintroduction of the same name with a different number
+
+```protobuf
+// Bad — field numbers and names freed for reuse
+// (just delete the fields)
+
+// Good — explicitly reserved
+reserved 40, 41, 42, 43;
+reserved "purpose_code", "purpose_label";
+```
+
+_Sources: PR #5770_

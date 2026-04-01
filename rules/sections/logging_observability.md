@@ -93,3 +93,27 @@ documents.any? { |doc| doc.executed? }
 ```
 
 _Sources: PR #20133_
+
+### Don't Log Sensitive Webhook Payloads
+
+- Before logging a webhook payload, assess whether it contains PII or sensitive financial data
+- Log only known-safe attributes (e.g., `amount`) rather than the full request body
+- When no stable entity ID is available, identify a safe shared attribute to use as a log fingerprint
+
+```ruby
+# Bad — full payload may contain sensitive financial data
+Rails.logger.info("Received webhook: #{params.to_json}")
+
+# Good — log only a known-safe attribute
+Rails.logger.info("Received Piermont webhook: amount=#{params[:amount]}")
+```
+
+_Sources: PR #5081_
+
+### Keep Monitor Lifecycle in Sync with Job Lifecycle
+
+- When removing a scheduled job from code, also delete its monitor in Cronitor (or equivalent)
+- A defunct monitor fires false alerts immediately once the job stops running
+- Treat external monitoring config as part of the same change as the job removal
+
+_Sources: PR #5865_

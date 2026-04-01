@@ -9,6 +9,7 @@ scope: fullstack
 - Never use floating-point multiplication to convert dollar strings to cents — parse integer and decimal parts as strings and combine arithmetically.
 - Keep intermediate calculations and return values in cents; converting to dollars mid-calculation introduces fractional cents that don't match integer storage.
 - Money parsing functions should be strict by default: validate input format, reject ambiguous values (commas, scientific notation, >2 decimal places), and throw on invalid input.
+- In TypeScript, use `toCentsStrict` (not a lenient conversion) when building monetary values in financial pipelines — it fails loudly on invalid or ambiguous amounts where silent precision loss is unacceptable.
 
 ```ts
 // Bad — floating-point precision error
@@ -19,7 +20,7 @@ const [dollars, frac = "0"] = "1.10".split(".");
 const cents = Number(dollars) * 100 + Number(frac.padEnd(2, "0"));
 ```
 
-_Sources: PR #5992, PR #6645_
+_Sources: PR #5992, PR #6645, PR #7041_
 
 ### Transfer-Type-Specific Modeling
 
@@ -128,6 +129,7 @@ _Sources: PR #22131, PR #20535, PR #26069, PR #23279, PR #20504_
 - Ensure `sum` results are cast to BigDecimal (via `.to_d` or `sum(0.to_d)`) — an empty array's `sum` returns Integer `0`, breaking decimal arithmetic downstream.
 - When aggregating monetary values, handle the empty-collection case explicitly — a sum of zero should still carry currency metadata.
 - Never force currency conversion implicitly during summation; preserve the original currency.
+- For large result sets, prefer ActiveRecord's SQL-level `sum(:column_name)` over Ruby's `Enumerable#sum` with a block — the block form loads all records into memory before summing.
 
 ```ruby
 # Bad — integer 0 accumulator loses currency
@@ -135,9 +137,12 @@ closings.sum(&:wired_or_requested_amount)
 
 # Good — explicit Money zero with currency
 closings.sum(Money.zero(fund.currency), &:wired_or_requested_amount)
+
+# For large sets, push to SQL
+payments.sum(:amount_cents)
 ```
 
-_Sources: PR #22505, PR #18484, PR #25294, PR #23279_
+_Sources: PR #22505, PR #18484, PR #25294, PR #23279, PR #5016_
 
 ### Use Domain Accessors Over Raw Columns
 
@@ -270,8 +275,10 @@ _Sources: PR #25929, PR #22943, PR #21670_
 - Proactively add test cases for reversal/refund scenarios even if current logic appears to handle them.
 - Test factories for double-entry accounting should produce balanced, realistic data by default.
 - Walk through financial math with concrete numbers in comments — coincidental correctness (works for one value but not others) is a common bug source.
+- When writing concurrent/race condition tests for financial operations, don't bypass model validations with `force` flags — the protection mechanism (balance checks, etc.) often lives inside those validations, and bypassing them makes the test pass for the wrong reason.
+- Tests for accounting services that split entries by participant type (e.g., QP vs non-QP) must assert on individual ledger entries rather than net balances — net assertions don't verify the split is correct.
 
-_Sources: PR #21764, PR #24446, PR #23468, PR #24571, PR #17976, PR #18031, PR #19048_
+_Sources: PR #21764, PR #24446, PR #23468, PR #24571, PR #17976, PR #18031, PR #19048, PR #5812, PR #26875_
 
 ### Date Parsing in Financial Contexts
 
@@ -292,16 +299,19 @@ _Sources: PR #21162, PR #23948_
 - Wrap parent record creation and associated financial data (e.g., share class + accounting valuations) in a database transaction to prevent orphaned records.
 - When implementing cancel/undo operations, clean up all dependent records created after the original entity.
 - When splitting PRs, keep tightly coupled domain logic (fund state changes + ledger entries) reviewable side by side.
+- Never make external API calls (fund movements, payment execution) inside database transactions — if the API call succeeds but the transaction rolls back, funds have moved with no corresponding DB record. Use Temporal workflows for durable coordination of external side effects with DB state.
 
-_Sources: PR #26156, PR #24782, PR #21673_
+_Sources: PR #26156, PR #24782, PR #21673, PR #6022_
 
 ### Scope-Respecting Financial Operations
 
 - When working with domain models scoped to a partition (e.g., membership class), verify that related operations respect the same scope boundary.
 - When matching records across entities by name (e.g., share classes during transfers), validate that key financial attributes are identical — raise a clear error listing mismatched fields.
 - Distinguish between "what we expect to affect" (pre-application) and "what we actually affected" (post-application) when querying related records.
+- Type-specific predicate methods in financial services should guard with an explicit `return false` for non-matching fund types before checking their condition — implicit fallthrough breaks as fund type diversity grows.
+- When filtering for specific asset types in accounting logic, use explicit per-type checks rather than negating a broad module or concern — broad negations silently include future subtypes.
 
-_Sources: PR #21842, PR #26156, PR #22655_
+_Sources: PR #21842, PR #26156, PR #22655, PR #26839, PR #27006_
 
 ### Financial Data Migration Safety
 
@@ -377,8 +387,9 @@ _Sources: PR #19015_
 - Always verify ledger categories, account mappings, and classification choices with accountants before merging — engineers should not unilaterally decide accounting categorizations.
 - Validate complex financial calculations against accountant-provided reference outputs (e.g., Excel FV function, worked examples) before shipping.
 - Accounting transaction descriptions should include identifying details (like company or asset name) to make ledger entries self-documenting and reduce ambiguity during audits.
+- When financial or legal definitions in code are uncertain and need external confirmation, file an explicit ticket and add a `# TODO` comment pointing to it — don't leave it as a mental note or PR comment that gets forgotten after merge.
 
-_Sources: PR #21842, PR #25387, PR #25457_
+_Sources: PR #21842, PR #25387, PR #25457, PR #26994_
 
 ### Prevent Double-Counting in Financial Aggregations
 
@@ -495,3 +506,49 @@ allocation = Allocation.new(entries: entries)
 ```
 
 _Sources: PR #17412, PR #24302_
+
+### Pessimistic Locking in Financial State Machines
+
+- Use `with_lock` (row-level locking) in financial state machines when you need to both prevent race conditions between a state read and mutation, and ensure multiple DB writes (e.g., ledger entry + state transition) commit atomically.
+- Encapsulate `with_lock` inside the method that performs the check-then-write operation, not in callers — putting it in callers makes it easy to forget and distributes the concurrency contract across call sites.
+- When using optimistic locking, reload the record after persistence to get the latest `lock_version` for retry scenarios; audit each reload — computed fields that query the DB directly don't need reloads.
+- Add specs that explicitly document and verify locking assumptions, especially non-obvious ones like "this lock does NOT prevent stale reads."
+
+```ruby
+# Bad — lock in caller; every caller must remember
+def process_webhook(payment)
+  payment.with_lock { payment_service.reject!(payment) }
+end
+
+# Good — lock encapsulated in the operation
+def reject!(payment)
+  payment.with_lock do
+    return unless payment.can_reject?
+    create_ledger_entry!(payment)
+    payment.update!(state: :rejected)
+  end
+end
+```
+
+_Sources: PR #5667, PR #7035, PR #5162, PR #5812_
+
+### Origin/Destination Mapping in Payment Construction
+
+- When building payment service calls that take both origin and destination objects, explicitly verify which side each field belongs to at every use site — using the wrong side compiles silently but sends funds to the wrong account.
+- Treat mismatched origin/destination fields as a correctness bug requiring targeted review, not just a naming issue.
+
+```ruby
+# Bad — origin fields passed where destination is required
+SEPA::CreditTransfer.new(
+  account_number: origin.account_number,   # wrong side
+  routing_number: origin.routing_number    # wrong side
+)
+
+# Good — fields match the transfer direction
+SEPA::CreditTransfer.new(
+  account_number: destination.account_number,
+  routing_number: destination.routing_number
+)
+```
+
+_Sources: PR #5620_

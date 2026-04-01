@@ -85,6 +85,7 @@ _Sources: PR #2969, PR #2629_
 - Use `useFormContext()` instead of prop-drilling the form object
 - Import form-aware components from `@angellist/adapt-react-hook-form`, not the base `@angellist/adapt` — base components lack register/control bindings and fail silently
 - Use form-aware Button components; they automatically handle disabled/loading states from form state
+- For list-based selection UIs inside forms, prefer adapt's `SelectList` + RHF over manual `useState` — it handles selection state, validation, and form integration natively
 
 ```tsx
 // Bad — manual state sync + wrong import
@@ -98,7 +99,7 @@ import { Select, Button } from '@angellist/adapt-react-hook-form';
 <Button type="submit" /> {/* disabled/loading handled automatically */}
 ```
 
-_Sources: PR #2895, PR #3681, PR #3811, PR #19424, PR #23640_
+_Sources: PR #2895, PR #3681, PR #3811, PR #19424, PR #23640, PR #7405_
 
 ### React Hook Form: Default Values and Reset
 
@@ -213,8 +214,9 @@ _Sources: PR #4897_
 - Check for existing URL query parameter libraries (e.g., nuqs) before building custom solutions
 - nuqs provides useState-like ergonomics backed by URL search params
 - Consistent URL-state behavior across the app reduces bugs
+- Never manipulate `window.history` or `window.location` directly in Next.js components — use the Next router or the codebase's `useQueryParamFilter` abstraction so navigation is SSR-compatible and testable
 
-_Sources: PR #7317_
+_Sources: PR #7317, PR #6863_
 
 ### Mirror Existing UI Patterns for Transient State
 

@@ -217,6 +217,7 @@ _Sources: PR #22284_
 
 - When a parameter is sometimes nil and the nil case requires significantly different handling, split into two methods with clear contracts
 - Share logic via a private inner method rather than adding defensive nil checks throughout
+- If a method only does an early return on nil and has few call sites, prefer a non-nilable parameter and move the guard to the caller — a nilable signature implies the method handles nil gracefully throughout, which misleads callers
 
 ```ruby
 # Bad — nil checks scattered throughout
@@ -233,7 +234,24 @@ def carry_hashes_for_member(member) ... end
 def carry_hashes_for_fund ... end
 ```
 
-_Sources: PR #23674_
+_Sources: PR #23674, PR #26995_
+
+### Avoid Sentinel Empty Collections
+
+- Don't overload a valid empty-collection value (`[]`) as a "skip this operation" sentinel — it creates ambiguity when `[]` also means "remove all"
+- Restructure callers to conditionally invoke the function only when the operation is actually needed, rather than passing a special value to suppress behavior
+
+```ts
+// Bad — [] means both "remove all" and "skip update"
+updateVehicleAssociations(dataRoomId, vehicleEntityIds ?? []);
+
+// Good — caller decides whether to invoke at all
+if (vehicleEntityIds !== undefined) {
+  updateVehicleAssociations(dataRoomId, vehicleEntityIds);
+}
+```
+
+_Sources: PR #3163_
 
 ### Domain-Appropriate Identifiers at API Boundaries
 

@@ -9,6 +9,7 @@ scope: backend
 - Use deterministic workflow IDs (e.g., `category:paymentTransferId`) as the idempotency key
 - Do not implement custom deduplication with timestamp flags — "do work then set flag" is inherently racy under concurrent calls
 - Temporal's workflow ID uniqueness constraint provides atomic, race-free deduplication out of the box
+- Derive IDs from stable domain entity IDs (e.g., `webhook-event-#{id}`) so workflows are searchable in the Temporal UI; this requires deduplication to happen upstream before starting the workflow
 
 ```ts
 // Bad — racy timestamp-based dedup
@@ -25,7 +26,7 @@ await client.workflow.start(sendPaymentEmail, {
 });
 ```
 
-_Sources: PR #6662, PR #6663_
+_Sources: PR #6662, PR #6663, PR #5086_
 
 ### Worker Infrastructure: One Queue Per Machine
 
@@ -88,6 +89,8 @@ _Sources: PR #4735_
 - When configuring exponential backoff retries, calculate the actual maximum wait time given retry count and initial interval
 - Match retry parameters to the job's scheduling cadence — no point in a backoff exceeding the next scheduled run
 - Use 10-12 retries instead of unbounded counts to keep total within a reasonable window
+- Always define `max_attempts` and `max_interval` so workflows can reach a terminal `Failed` state and trigger alerting; infinite retries suppress failure visibility
+- If retry-forever is deliberately chosen (e.g., payment events), pair it with monitoring alerts for stale workflows that haven't completed within a threshold
 
 ```ts
 // Bad — doubling backoff with 30 retries = ~16 years max wait
@@ -98,7 +101,7 @@ _Sources: PR #4735_
 // Max wait: ~1024 minutes ≈ 17 hours
 ```
 
-_Sources: PR #22942_
+_Sources: PR #22942, PR #5086, PR #7098_
 
 ### Don't Create Activities for Inline Checks
 
@@ -243,3 +246,52 @@ class GeminiDealTermVerificationService; end
 ```
 
 _Sources: PR #19812, PR #2539_
+
+### Keep Side Effects Inside the Workflow
+
+- Any side effects that must happen together with a Temporal workflow should be activities *inside* that workflow, not inline code after the workflow submission call
+- Submitting a workflow then making DB updates inline creates partial-failure risk: the workflow proceeds while local state is out of sync if the update fails
+- When processing a batch of items, prefer a single workflow that fans out to per-item activities over multiple independent workflows per item — failures are recoverable via replay without partial state accumulation
+
+```ruby
+# Bad — DB update after submission fails independently
+TemporalClient.start_workflow(UploadFilesWorkflow, file_ids: ids)
+record.update!(status: :processing)  # can fail while workflow proceeds
+
+# Good — update is an activity inside the workflow
+# Inside UploadFilesWorkflow:
+execute_activity!(UpdateRecordActivity, record_id: record_id)
+file_ids.each { |id| execute_activity!(UploadFileActivity, file_id: id) }
+```
+
+_Sources: PR #4902, PR #4905_
+
+### Classify Errors by Retryability
+
+- Never rescue `RuntimeError` broadly in Temporal activities — it catches transient network errors (e.g., `Net::ReadTimeout`) and prevents Temporal from retrying them
+- Define specific error subclasses for deterministic (non-retriable) failures; let transient errors surface as generic exceptions for Temporal's retry mechanism
+- For external API clients, use a distinct subclass for 4xx/validation errors (non-retriable) vs. 5xx server errors (retriable)
+
+```ruby
+# Bad — catches timeouts, suppressing retries
+rescue RuntimeError => e
+  handle_validation_error(e)
+
+# Good — only catches deterministic failures
+class DataValidationError < RuntimeError; end
+class ApiValidationError < RuntimeError; end  # raised for 4xx only
+
+rescue DataValidationError, ApiValidationError => e
+  handle_validation_error(e)
+# Plain RuntimeError (timeouts, 5xx) propagates for Temporal to retry
+```
+
+_Sources: PR #6971_
+
+### Configure Retry Policy on the Activity Class
+
+- In the Ruby Temporal gem, activity retry policies and workflow retry policies are distinct; the workflow-level `retry_policy` does NOT propagate to activities inside it
+- The workflow-level policy controls retries of the workflow execution itself (relevant when run as a child workflow); it has no effect on `execute_activity!` calls within
+- Configure retry policies on the activity class, not on the enclosing workflow, unless you specifically need workflow-level retry semantics
+
+_Sources: PR #6885_

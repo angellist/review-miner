@@ -82,7 +82,8 @@ _Sources: PR #6257_
 ### Follow Existing Naming Conventions in Context
 
 - Before adding a new field, file, or identifier, check how existing peers in the same location name the equivalent
-- Consistency across the schema or directory outweighs marginally more precise individual names
+- Consistency across the schema, directory, or config file outweighs marginally more precise individual names
+- In config files, match the style of surrounding entries (hardcoded vs dynamic) — don't introduce a dynamic approach when everything else is hardcoded
 
 ```prisma
 // Existing models use created_at for both creation and event time
@@ -93,7 +94,7 @@ model ActivityLog {
 }
 ```
 
-_Sources: PR #3573, PR #5409_
+_Sources: PR #3573, PR #5409, PR #6923_
 
 ### Comments Must Match Execution Semantics
 
@@ -206,3 +207,34 @@ _Sources: PR #19301_
 - Ideally, compute once on the backend and expose via API rather than duplicating the calculation
 
 _Sources: PR #25583_
+
+### Prefer Domain Predicate Methods Over Type Checks
+
+- Use named domain predicate methods (e.g., `tracker.is_indirect?`) instead of ad-hoc type checks (`tracker.source.is_a?(SomeClass)`)
+- Predicate methods centralize the definition, make intent clear, and allow implementation to evolve without touching call sites
+- Audit all call sites when aligning on a convention — don't leave a mix of the two approaches
+
+```ruby
+# Bad — couples callers to internal implementation
+tracker.source.is_a?(IndirectSource)
+
+# Good — semantic, encapsulated
+tracker.is_indirect?
+```
+
+_Sources: PR #25602_
+
+### Don't Mirror External System Naming for Internal Concepts
+
+- When integrating with a third-party system, don't use the external provider's terminology if it collides with an internal domain concept
+- A class named after an external term implies it belongs to the internal domain model — use a name that reflects its actual role (adapter, integration, client)
+
+```ruby
+# Bad — "customer_account" implies a relationship to CustomerAccount model
+ThirdPartyBank::CustomerAccountSyncService
+
+# Good — name reflects external integration, not internal domain
+ThirdPartyBank::AccountSyncService
+```
+
+_Sources: PR #6116_
