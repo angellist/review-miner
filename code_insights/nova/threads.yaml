@@ -1,11 +1,14 @@
 metadata:
-  last_refresh: '2026-03-18T16:10:45.972284'
+  last_refresh: '2026-03-31T15:58:10.689139'
   fetched_ranges:
   - since: '2025-03-04'
     until: '2026-03-18'
     fetched_at: '2026-03-18T16:10:45.972242'
-  pr_count: 1797
-  thread_count: 5026
+  - since: '2026-03-18'
+    until: '2026-03-31'
+    fetched_at: '2026-03-31T15:58:10.689119'
+  pr_count: 1849
+  thread_count: 5166
 threads:
 - thread_id: 1949484590
   pr: 2382
@@ -82470,6 +82473,23 @@ threads:
   merged_at: '2026-02-10T08:25:30Z'
   repo: nova
   has_suggestion_block: false
+- thread_id: 2785844239
+  pr: 6803
+  root:
+    id: 2785844239
+    author: Utkarsh-AL
+    body: 'Should we be logging the whole request body? '
+    path: graph/src/routers/verifyinvestor/index.ts
+    created_at: '2026-02-10T05:14:00Z'
+  replies:
+  - id: 2805907618
+    author: edwinzhng
+    body: Good call, removed
+    created_at: '2026-02-13T20:08:59Z'
+  pr_author: edwinzhng
+  merged_at: '2026-03-24T20:05:20Z'
+  repo: nova
+  has_suggestion_block: false
 - thread_id: 2786051906
   pr: 6801
   root:
@@ -89529,6 +89549,21 @@ threads:
   merged_at: '2026-03-16T18:34:12Z'
   repo: nova
   has_suggestion_block: false
+- thread_id: 2942750791
+  pr: 7280
+  root:
+    id: 2942750791
+    author: cameronnapoli
+    body: I thought you were going to change these to engbot migrations? It's difficult
+      to tell if this SQL migration is valid when it's not using the libraries we
+      already have.
+    path: packages/prisma/migrations/20260313000000_backfill_sort_attributes/migration.sql
+    created_at: '2026-03-16T20:16:38Z'
+  replies: []
+  pr_author: ywplee-al
+  merged_at: '2026-03-24T17:49:21Z'
+  repo: nova
+  has_suggestion_block: false
 - thread_id: 2943394047
   pr: 7290
   root:
@@ -89648,6 +89683,70 @@ threads:
     created_at: '2026-03-17T04:57:41Z'
   pr_author: edwinzhng
   merged_at: '2026-03-17T05:12:46Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2943734371
+  pr: 7280
+  root:
+    id: 2943734371
+    author: cameronnapoli
+    body: 'Viewer attributes - cool naming. However, I''m wondering if they definitively
+      need to be their own table. I''m don''t see why we can''t add a `organizationId
+      String? @map("organization_id") @db.Uuid` to the Attribute table?
+
+
+      > Unlike the `Attribute` model, these are sort-only values
+
+
+      I don''t know if I agree here. Attributes relation to an organization could
+      be presented. (e.g. interaction state would be beneficial to surface as an attribute)'
+    path: packages/prisma/models/viewerAttributes.prisma
+    created_at: '2026-03-17T00:38:18Z'
+  replies:
+  - id: 2944299145
+    author: ywplee-al
+    body: "so here was my thought process\r\n1. Existing Attribute rows belong to\
+      \ the deal itself — no org owner\r\n2. Viewer attributes belong to a specific\
+      \ org's interaction with a deal — feels like a fundamentally different ownership.\r\
+      \n\r\nSo I created a separate table as a clean logical break. Putting them together\
+      \ means `organizationId = NULL` is  \"deal metadata\" and `organizationId =\
+      \ <uuid>` is \"viewer state\" — they're both called attributes but represent\
+      \   entirely different things (maybe debatable depends on how you look at this).\
+      \ \r\n\r\nAlso with the merged table approach - if 100 orgs views a deal, doesn't\
+      \ it create 100 extra rows in the attribute table? this felt weird.This was\
+      \ my understanding if it's incorrect, let me know.\r\n\r\nThat said, I see the\
+      \ value of keeping everything under one table too — the table is already has\
+      \ 4  nullable parent foreign keys so this would be consistent. Happy to go either\
+      \ way, you have more context on this codebase."
+    created_at: '2026-03-17T04:32:40Z'
+  - id: 2950121824
+    author: ywplee-al
+    body: '@cameronnapoli let me know'
+    created_at: '2026-03-17T23:52:41Z'
+  - id: 2955356792
+    author: cameronnapoli
+    body: "@ywplee-al  I see your perspective, and I could see an argument for either\
+      \ direction.\r\n\r\nI'm fine separating for now - we can always merge later.\
+      \ Let's at least surface to the broader team. I think @harshaneel has been owning\
+      \ this surface.\r\n\r\nSeems like it at least belongs in the same schema file?\
+      \ `attributes.schema`"
+    created_at: '2026-03-18T18:16:06Z'
+  - id: 2956469486
+    author: ywplee-al
+    body: Good call — moved `ViewerAttribute` into `attributes.prisma`. Deleted the
+      standalone file.
+    created_at: '2026-03-18T21:57:54Z'
+  - id: 2976830932
+    author: harshaneel
+    body: '@ywplee-al If I understand this right, `ViewerAttribute`''s writes will
+      only come from users actually viewing / visiting links. Right?'
+    created_at: '2026-03-23T18:30:43Z'
+  - id: 2976984208
+    author: ywplee-al
+    body: '@harshaneel correct '
+    created_at: '2026-03-23T18:59:57Z'
+  pr_author: ywplee-al
+  merged_at: '2026-03-24T17:49:21Z'
   repo: nova
   has_suggestion_block: false
 - thread_id: 2943967864
@@ -89881,6 +89980,240 @@ threads:
   merged_at: '2026-03-18T21:51:00Z'
   repo: nova
   has_suggestion_block: false
+- thread_id: 2953274649
+  pr: 7320
+  root:
+    id: 2953274649
+    author: kevinmmarlow
+    body: Had to add this, missed it due to lack of rebase
+    path: nova-e2e/services/emulator/src/schemas/ipseity.ts
+    created_at: '2026-03-18T12:59:08Z'
+  replies: []
+  pr_author: kevinmmarlow
+  merged_at: '2026-03-19T01:03:41Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2953278641
+  pr: 7320
+  root:
+    id: 2953278641
+    author: kevinmmarlow
+    body: My local E2E would always get stuck. It seems like we were hanging on several
+      of the processes, so I added shutdown configs with timeouts to ensure proper
+      operation.
+    path: nova-e2e/process-compose.yaml
+    created_at: '2026-03-18T12:59:52Z'
+  replies:
+  - id: 2955103499
+    author: ahlec
+    body: Ahhhhh thank you. I think I've seen this as well recently.
+    created_at: '2026-03-18T17:31:21Z'
+  pr_author: kevinmmarlow
+  merged_at: '2026-03-19T01:03:41Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2955131482
+  pr: 7283
+  root:
+    id: 2955131482
+    author: edwinzhng
+    body: Do we not have shared where conditions we can use here?
+    path: graph/src/data/distributions/distributionPayment.ts
+    created_at: '2026-03-18T17:35:55Z'
+  replies: []
+  pr_author: kwliang1
+  merged_at: '2026-03-23T20:02:20Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2955133669
+  pr: 7283
+  root:
+    id: 2955133669
+    author: edwinzhng
+    body: I thought we had shared helpers for these distribution state WHERE clauses
+    path: graph/src/data/distributions/distributionPayment.ts
+    created_at: '2026-03-18T17:36:17Z'
+  replies: []
+  pr_author: kwliang1
+  merged_at: '2026-03-23T20:02:20Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2955139813
+  pr: 7283
+  root:
+    id: 2955139813
+    author: edwinzhng
+    body: 'I don''t really like having even more custom return object shapes in the
+      data layer, could we just return `distributionPayment: DistributionPaymentModel`
+      and `distribution: DistributionModel` directly?'
+    path: graph/src/data/distributions/distributionPayment.ts
+    created_at: '2026-03-18T17:37:13Z'
+  replies: []
+  pr_author: kwliang1
+  merged_at: '2026-03-23T20:02:20Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2955274924
+  pr: 7284
+  root:
+    id: 2955274924
+    author: edwinzhng
+    body: Why is this a new model vs. reusing the existing DistributionPayment GraphQL
+      model?
+    path: graph/src/internal/schema/entity/financialAccount/reconcileTransaction.ts
+    created_at: '2026-03-18T18:00:37Z'
+  replies:
+  - id: 2958177904
+    author: kwliang1
+    body: It's a flat denormalized view joining fields from 4  entities. The existing
+      model doesn't have lpName, distributionName, or paymentTransferId.
+    created_at: '2026-03-19T06:48:07Z'
+  pr_author: kwliang1
+  merged_at: '2026-03-20T06:58:59Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2955279228
+  pr: 7284
+  root:
+    id: 2955279228
+    author: edwinzhng
+    body: Do we have an enum for this?
+    path: graph/src/internal/schema/entity/financialAccount/reconcileTransaction.ts
+    created_at: '2026-03-18T18:01:24Z'
+  replies: []
+  pr_author: kwliang1
+  merged_at: '2026-03-20T06:58:59Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2955281452
+  pr: 7284
+  root:
+    id: 2955281452
+    author: edwinzhng
+    body: We typically have 1 file per query/mutation, should we split this up?
+    path: graph/src/internal/schema/entity/financialAccount/reconcileTransaction.ts
+    created_at: '2026-03-18T18:01:51Z'
+  replies: []
+  pr_author: kwliang1
+  merged_at: '2026-03-20T06:58:59Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2955619393
+  pr: 7284
+  root:
+    id: 2955619393
+    author: edwinzhng
+    body: I don't like nesting a `lib` folder here, feels like it'll get super confusing
+      with our real lib folder, can we just unnest the `authz.ts` file?
+    path: graph/src/services/entityFinancialAccount/authz.ts
+    created_at: '2026-03-18T19:02:00Z'
+  replies:
+  - id: 2958174014
+    author: kwliang1
+    body: https://github.com/angellist/nova/pull/7284/changes#diff-15d33f7590bdb40e6514bc2f61dcd4e49a6b5ee0c32113d3727078cec1b56e71
+    created_at: '2026-03-19T06:46:43Z'
+  pr_author: kwliang1
+  merged_at: '2026-03-20T06:58:59Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2955918847
+  pr: 7285
+  root:
+    id: 2955918847
+    author: edwinzhng
+    body: Should the backend dedupe so we don't need to convert to set here?
+    path: app/src/components/views/EntityFinancialAccounts/EntityFinancialAccount/EntityFinancialTransactionsTable/index.tsx
+    created_at: '2026-03-18T20:02:45Z'
+  replies: []
+  pr_author: kwliang1
+  merged_at: '2026-03-20T06:58:51Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2955929707
+  pr: 7285
+  root:
+    id: 2955929707
+    author: edwinzhng
+    body: '"Recipient entity" for consistency?'
+    path: app/src/components/views/EntityFinancialAccounts/EntityFinancialAccount/ReconciliationBlade/UnreconciledPaymentsTable/columns.ts
+    created_at: '2026-03-18T20:05:05Z'
+  replies: []
+  pr_author: kwliang1
+  merged_at: '2026-03-20T06:58:51Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2955932901
+  pr: 7285
+  root:
+    id: 2955932901
+    author: edwinzhng
+    body: We already have emptyState on the table itself, do we need this?
+    path: app/src/components/views/EntityFinancialAccounts/EntityFinancialAccount/ReconciliationBlade/UnreconciledPaymentsTable/UnreconciledPaymentsTable.tsx
+    created_at: '2026-03-18T20:05:45Z'
+  replies: []
+  pr_author: kwliang1
+  merged_at: '2026-03-20T06:58:51Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2955957014
+  pr: 7285
+  root:
+    id: 2955957014
+    author: edwinzhng
+    body: Use const here instead of `let`
+    path: app/src/components/views/EntityFinancialAccounts/EntityFinancialAccount/ReconciliationBlade/ReconciliationBlade.tsx
+    created_at: '2026-03-18T20:10:54Z'
+  replies: []
+  pr_author: kwliang1
+  merged_at: '2026-03-20T06:58:51Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2955961314
+  pr: 7285
+  root:
+    id: 2955961314
+    author: edwinzhng
+    body: Can we move this to the blade header? Also typically we use `Admin` as the
+      copy with `intent='warning'`
+    path: app/src/components/views/EntityFinancialAccounts/EntityFinancialAccount/ReconciliationBlade/ReconciliationBlade.tsx
+    created_at: '2026-03-18T20:11:49Z'
+  replies: []
+  pr_author: kwliang1
+  merged_at: '2026-03-20T06:58:51Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2955963280
+  pr: 7285
+  root:
+    id: 2955963280
+    author: edwinzhng
+    body: Recipient entity name instead of LP?
+    path: app/src/components/views/EntityFinancialAccounts/EntityFinancialAccount/ReconciliationBlade/ReconciliationBlade.tsx
+    created_at: '2026-03-18T20:12:14Z'
+  replies: []
+  pr_author: kwliang1
+  merged_at: '2026-03-20T06:58:51Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2955970387
+  pr: 7285
+  root:
+    id: 2955970387
+    author: edwinzhng
+    body: Why is this a thing? We have a lot of complex hooks that we extract to separate
+      files
+    path: AGENTS.md
+    created_at: '2026-03-18T20:13:32Z'
+  replies:
+  - id: 2958116413
+    author: kwliang1
+    body: my misunderstanding.   I thought this was the preference and wanted to avoid
+      prompting this
+    created_at: '2026-03-19T06:26:31Z'
+  pr_author: kwliang1
+  merged_at: '2026-03-20T06:58:51Z'
+  repo: nova
+  has_suggestion_block: false
 - thread_id: 2956223911
   pr: 7317
   root:
@@ -89975,5 +90308,2218 @@ threads:
   replies: []
   pr_author: ahlec
   merged_at: '2026-03-18T21:51:00Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2956847312
+  pr: 7325
+  root:
+    id: 2956847312
+    author: JaredWF
+    body: We can clean up this conditional if we just move the currency into the `dealAccesLinkData`
+      arg.
+    path: graph/src/routers/internal/sync/campaign/syncDealAccessLink.ts
+    created_at: '2026-03-18T23:35:00Z'
+  replies: []
+  pr_author: harshaneel
+  merged_at: '2026-03-20T20:09:47Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2956864335
+  pr: 7325
+  root:
+    id: 2956864335
+    author: JaredWF
+    body: We shouldn't be using `as` casting like this, it essentially bypasses the
+      type system so we can't actually trust the types further down the call stack.
+    path: graph/src/lib/dataroom/sync/dealAccessLinks/create.ts
+    created_at: '2026-03-18T23:38:59Z'
+  replies:
+  - id: 2956889338
+    author: JaredWF
+    body: 'The fact that we need this function and need to break the types probably
+      means that the `upsertAccessLink` function we call later is probably taking
+      in more data than it actually requires. I thinking that we probably need a bit
+      of a refactor if we want to cleanly support both code paths:
+
+      1. Refactor `upsertAccessLink` to just take the data it needs, disconnect it
+      from the `FundraisingCampaign` type and other types derived from APIs
+
+      2. Create a util function to call venture to fetch the data and map it into
+      the new type for `upsertAccessLink`
+
+      3. Tidy up some of the prefetched mapping to use the new input type'
+    created_at: '2026-03-18T23:45:37Z'
+  pr_author: harshaneel
+  merged_at: '2026-03-20T20:09:47Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2956876992
+  pr: 7325
+  root:
+    id: 2956876992
+    author: JaredWF
+    body: Hardcoding to 0 here feels unexpected
+    path: graph/src/lib/dataroom/sync/dealAccessLinks/create.ts
+    created_at: '2026-03-18T23:42:12Z'
+  replies: []
+  pr_author: harshaneel
+  merged_at: '2026-03-20T20:09:47Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2957359362
+  pr: 7328
+  root:
+    id: 2957359362
+    author: ctotheameron
+    body: "[nit]\n```suggestion\n                description: `\n                \
+      \  The AngelList team can help you configure investments\n                 \
+      \ via a CSV upload\n                `,\n```\n\nAnd elsewhere (or you can use\
+      \ string concatenation or wtv you prefer)"
+    path: app/src/components/views/Directory/Entity/index.tsx
+    created_at: '2026-03-19T02:14:29Z'
+  replies: []
+  pr_author: ahlec
+  merged_at: '2026-03-19T20:30:33Z'
+  repo: nova
+  has_suggestion_block: true
+- thread_id: 2959114088
+  pr: 7334
+  root:
+    id: 2959114088
+    author: ctotheameron
+    body: 'this is actually the return type (we never send status: false)'
+    path: graph/src/lib/temporal/utils/workflowRunner.ts
+    created_at: '2026-03-19T10:28:23Z'
+  replies: []
+  pr_author: ctotheameron
+  merged_at: '2026-03-24T07:04:18Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2959122894
+  pr: 7334
+  root:
+    id: 2959122894
+    author: ctotheameron
+    body: 'Note it might make sense for the mailproxy sdk to export some sort of parser
+      for the webhook endpoints so that we don''t have to do all this ceremony.
+
+
+      Leaving that for another day '
+    path: packages/core/src/emails/webhooks.ts
+    created_at: '2026-03-19T10:29:57Z'
+  replies: []
+  pr_author: ctotheameron
+  merged_at: '2026-03-24T07:04:18Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2961896740
+  pr: 7336
+  root:
+    id: 2961896740
+    author: ywplee-al
+    body: i think this was a mistake from devin https://github.com/angellist/nova/pull/6745
+    path: app/src/components/views/DataRoomMember/DataRoom/Terms/rows/managementFee.ts
+    created_at: '2026-03-19T18:22:44Z'
+  replies: []
+  pr_author: ywplee-al
+  merged_at: '2026-03-19T18:46:25Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2963130206
+  pr: 7325
+  root:
+    id: 2963130206
+    author: JaredWF
+    body: '@harshaneel Cursor is correct here. I don''t see any reasons to use `as`
+      casting for this feature'
+    path: graph/src/lib/dataroom/sync/dealAccessLinks/create.ts
+    created_at: '2026-03-19T22:52:34Z'
+  replies: []
+  pr_author: harshaneel
+  merged_at: '2026-03-20T20:09:47Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2963133004
+  pr: 7325
+  root:
+    id: 2963133004
+    author: JaredWF
+    body: These types are identical? Can we condense down to one of them?
+    path: graph/src/lib/dataroom/sync/dealAccessLinks/create.ts
+    created_at: '2026-03-19T22:53:24Z'
+  replies: []
+  pr_author: harshaneel
+  merged_at: '2026-03-20T20:09:47Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2963228855
+  pr: 7341
+  root:
+    id: 2963228855
+    author: JaredWF
+    body: So you might look at this and wonder "why are we fetching all of this data
+      again when we have it in the upsert service?" My thought is that I want our
+      services to generally be decoupled from each other which means making them easy
+      to call with no prefetched data. If this causes performance issues in the future,
+      we can re-evaluate, but for now I like the clean function signature that this
+      approach offers.
+    path: graph/src/services/dataRoomAccessLink/syncToVenture.ts
+    created_at: '2026-03-19T23:19:28Z'
+  replies: []
+  pr_author: JaredWF
+  merged_at: '2026-03-24T23:04:12Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2963233099
+  pr: 7341
+  root:
+    id: 2963233099
+    author: JaredWF
+    body: Moved from the upsert service so that we can share it with the sync service.
+      Once the sync to venture and the investment terms model is gone, we'll be able
+      to remove this entirely.
+    path: graph/src/services/dataRoomAccessLink/utils.ts
+    created_at: '2026-03-19T23:20:45Z'
+  replies: []
+  pr_author: JaredWF
+  merged_at: '2026-03-24T23:04:12Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2963369425
+  pr: 7284
+  root:
+    id: 2963369425
+    author: edwinzhng
+    body: 'Pull to top of file? '
+    path: graph/src/services/entityFinancialAccount/reconciliation/index.ts
+    created_at: '2026-03-20T00:07:22Z'
+  replies:
+  - id: 2963371022
+    author: edwinzhng
+    body: Also why do we need leeway here? I'd assume if an admin was manually reconciling,
+      the results would be exact matches always?
+    created_at: '2026-03-20T00:08:11Z'
+  pr_author: kwliang1
+  merged_at: '2026-03-20T06:58:59Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2963373715
+  pr: 7284
+  root:
+    id: 2963373715
+    author: edwinzhng
+    body: Why is matchedAmount hard-coded here?
+    path: graph/src/services/paymentTransfer/manualReconcile/index.ts
+    created_at: '2026-03-20T00:09:29Z'
+  replies: []
+  pr_author: kwliang1
+  merged_at: '2026-03-20T06:58:59Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2963389292
+  pr: 7325
+  root:
+    id: 2963389292
+    author: harshaneel
+    body: '`LinkFields` is the common subset of fields needed by `upsertAccessLink`
+      and its helpers. Both Venture SDK''s `DealAccessLink` (from the bulk sync path)
+      and our `DealAccessLinkData` (from the prefetched path) are structurally compatible
+      with it. We can''t use `DealAccessLinkData` everywhere because it requires `campaignCurrencyIso`,
+      which the Venture SDK type doesn''t have, so the bulk path in `syncDealAccessLinks`
+      wouldn''t type-check. `DealAccessLinkData` extends `LinkFields` with that one
+      extra field.
+
+      '
+    path: graph/src/lib/dataroom/sync/dealAccessLinks/create.ts
+    created_at: '2026-03-20T00:15:53Z'
+  replies: []
+  pr_author: harshaneel
+  merged_at: '2026-03-20T20:09:47Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2963498649
+  pr: 7285
+  root:
+    id: 2963498649
+    author: edwinzhng
+    body: Does a `useQuery` not work here if the params change for amount and method?
+      Feels pretty awkward to be doing this in a `useEffect`
+    path: app/src/components/views/EntityFinancialAccounts/EntityFinancialAccount/ReconciliationBlade/ReconciliationBlade.tsx
+    created_at: '2026-03-20T01:11:08Z'
+  replies: []
+  pr_author: kwliang1
+  merged_at: '2026-03-20T06:58:51Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2963611394
+  pr: 7344
+  root:
+    id: 2963611394
+    author: kevinmmarlow
+    body: Kind of surprised you are doing `yaml.stringify` and have to manually parse
+      the yaml, versus something that would parse it for you and let you iterate a
+      tree
+    path: app/src/components/views/AdminKycPreview/KycPreviewFlow/buildKycPreviewDataYaml.ts
+    created_at: '2026-03-20T02:08:37Z'
+  replies:
+  - id: 2964178267
+    author: pradyuman
+    body: Updated to use the parser. I think it's a little more arcane to read this
+      way, but definitely feels cleaner haha.
+    created_at: '2026-03-20T06:21:50Z'
+  pr_author: pradyuman
+  merged_at: '2026-03-20T07:28:56Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2963613058
+  pr: 7344
+  root:
+    id: 2963613058
+    author: kevinmmarlow
+    body: '@ctotheameron do you think this would break adapt''s (react aria''s) focus
+      state management?'
+    path: app/src/components/views/AdminKycPreview/KycPreviewFlow/getKycPreviewFocusTarget.ts
+    created_at: '2026-03-20T02:09:40Z'
+  replies:
+  - id: 2964202895
+    author: pradyuman
+    body: These are all read only, so they shouldn't affect anything within adapt
+      / react aria's internal state management.
+    created_at: '2026-03-20T06:31:08Z'
+  pr_author: pradyuman
+  merged_at: '2026-03-20T07:28:56Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2963666921
+  pr: 7344
+  root:
+    id: 2963666921
+    author: kevinmmarlow
+    body: What's driving this change? fixed versus absolute, doesn't seem related
+      to focus?
+    path: app/src/components/views/AdminKycPreview/KycPreviewBanner.tsx
+    created_at: '2026-03-20T02:33:35Z'
+  replies:
+  - id: 2964182003
+    author: pradyuman
+    body: 'I wanted to have the data inspector extend to the bottom of the screen,
+      which meant redoing a bunch of the layout to make sure `height: full` works.'
+    created_at: '2026-03-20T06:23:12Z'
+  pr_author: pradyuman
+  merged_at: '2026-03-20T07:28:56Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2963669068
+  pr: 7344
+  root:
+    id: 2963669068
+    author: kevinmmarlow
+    body: Should `data-vulcan-key` be a constant?
+    path: app/src/components/views/AdminKycPreview/KycPreviewFlow/index.tsx
+    created_at: '2026-03-20T02:34:42Z'
+  replies:
+  - id: 2964182681
+    author: pradyuman
+    body: Makes sense -- updated.
+    created_at: '2026-03-20T06:23:23Z'
+  pr_author: pradyuman
+  merged_at: '2026-03-20T07:28:56Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2963958703
+  pr: 7285
+  root:
+    id: 2963958703
+    author: edwinzhng
+    body: 'nit: Also feels kinda weird to have a ref make a closing animation not
+      flash - could we either have the parent set `isOpen` separately from storing
+      the transaction? Or, could we track `isOpen` as state in this component, and
+      just toggle it `onClose`, and set to `true` whenever the transaction changes?
+
+
+      '
+    path: app/src/components/views/EntityFinancialAccounts/EntityFinancialAccount/ReconciliationBlade/ReconciliationBlade.tsx
+    created_at: '2026-03-20T04:54:18Z'
+  replies: []
+  pr_author: kwliang1
+  merged_at: '2026-03-20T06:58:51Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2963961449
+  pr: 7307
+  root:
+    id: 2963961449
+    author: edwinzhng
+    body: Can we type this using the generated `UnreconciledDistributionPayment`?
+      And could the overrides use `Pick<UnreconciledDistributionPayment, 'id', ...>`?
+    path: app/src/components/views/EntityFinancialAccounts/EntityFinancialAccount/ReconciliationBlade/UnreconciledPaymentsTable/useUnreconciledPaymentsTable.test.ts
+    created_at: '2026-03-20T04:55:49Z'
+  replies: []
+  pr_author: kwliang1
+  merged_at: '2026-03-20T06:58:42Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2963962338
+  pr: 7307
+  root:
+    id: 2963962338
+    author: edwinzhng
+    body: Why do we need to mock all of this?
+    path: app/src/components/views/EntityFinancialAccounts/EntityFinancialAccount/ReconciliationBlade/UnreconciledPaymentsTable/useUnreconciledPaymentsTable.test.ts
+    created_at: '2026-03-20T04:56:21Z'
+  replies: []
+  pr_author: kwliang1
+  merged_at: '2026-03-20T06:58:42Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2963964776
+  pr: 7307
+  root:
+    id: 2963964776
+    author: edwinzhng
+    body: Curious why we need to mock these? Does rendering them in the test break?
+    path: app/src/components/views/EntityFinancialAccounts/EntityFinancialAccount/ReconciliationBlade/UnreconciledPaymentsTable/useUnreconciledPaymentsTable.test.ts
+    created_at: '2026-03-20T04:57:45Z'
+  replies: []
+  pr_author: kwliang1
+  merged_at: '2026-03-20T06:58:42Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2963998011
+  pr: 7332
+  root:
+    id: 2963998011
+    author: edwinzhng
+    body: nit, build this with a `reduce`
+    path: graph/src/services/angellist/ipseity/mapper/files.ts
+    created_at: '2026-03-20T05:10:44Z'
+  replies: []
+  pr_author: kevinmmarlow
+  merged_at: '2026-03-20T06:40:43Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2964008700
+  pr: 7332
+  root:
+    id: 2964008700
+    author: edwinzhng
+    body: 'nit: this file may be a bit easier to read if we split out the pending
+      file building for each of these different entity types/scenarios into a different
+      helper for pendingFiles, that also returned `undefined` if no files are available
+      so we don''t have to do `pendingFiles.length > 0 ? pendingFiles : undefined`
+      everywhere
+
+
+      Then we could just assign `pendingFiles: beneficialOwnerPendingFiles(bo)` here
+      or something, etc.'
+    path: graph/src/services/angellist/ipseity/mapper/relatedEntities.ts
+    created_at: '2026-03-20T05:14:30Z'
+  replies: []
+  pr_author: kevinmmarlow
+  merged_at: '2026-03-20T06:40:43Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2966739460
+  pr: 7325
+  root:
+    id: 2966739460
+    author: JaredWF
+    body: I think this function is still referenced
+    path: graph/src/lib/dataroom/sync/util.ts
+    created_at: '2026-03-20T16:27:49Z'
+  replies:
+  - id: 2966864690
+    author: harshaneel
+    body: Yeah, my local branches got messed up, I was fixing this yesterday, will
+      have fix out in a bit
+    created_at: '2026-03-20T16:53:10Z'
+  - id: 2967027476
+    author: harshaneel
+    body: Fixed
+    created_at: '2026-03-20T17:25:08Z'
+  pr_author: harshaneel
+  merged_at: '2026-03-20T20:09:47Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2968559240
+  pr: 7370
+  root:
+    id: 2968559240
+    author: ywplee-al
+    body: keep the comment here
+    path: app/src/components/views/DataRoomMember/DataRoom/Terms/SpvTerms.tsx
+    created_at: '2026-03-21T00:54:05Z'
+  replies: []
+  pr_author: ywplee-al
+  merged_at: '2026-03-23T20:20:40Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2969137072
+  pr: 7363
+  root:
+    id: 2969137072
+    author: cbzehner
+    body: _Note:_ We already have this on the front-end but it's a bit messy to track
+      it there alongside the selected entity and then pass it back from the web client,
+      so I chose to refetch the full entity on the backend in order to get their `invest_account_id`.
+    path: graph/src/internal/schema/dataroom/member/brokerDealer/submitSuitability.ts
+    created_at: '2026-03-21T05:36:29Z'
+  replies: []
+  pr_author: cbzehner
+  merged_at: '2026-03-23T19:52:21Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2972816062
+  pr: 7375
+  root:
+    id: 2972816062
+    author: kevinmmarlow
+    body: '@edwinzhng can you confirm that we shouldn''t be doing this? If not, I''ll
+      remove it completely'
+    path: packages/vulcan/utils/src/buildTxData.ts
+    created_at: '2026-03-23T04:47:38Z'
+  replies:
+  - id: 2975598426
+    author: edwinzhng
+    body: 'Interesting, why would we need a disabled field in downstream value computations?
+      Is that for defaults? I''m worried this will mess up regular template previews
+      again where we will auto-populate all fields (even disabled ones) with mock
+      data, and then all of those fields will be filled in the preview even if the
+      wrong entity type is selected '
+    created_at: '2026-03-23T14:56:54Z'
+  - id: 2975609258
+    author: edwinzhng
+    body: Nvm I see your comment below that it's double filtering
+    created_at: '2026-03-23T14:58:40Z'
+  pr_author: kevinmmarlow
+  merged_at: '2026-03-25T02:55:17Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2973144952
+  pr: 7373
+  root:
+    id: 2973144952
+    author: ywplee-al
+    body: 'Nit: trackIPPApplicationCompleted() fires with empty properties, but trackOnboardingComplete
+      right above it passes organizationId/organizationHandle. Worth adding those
+      here too for consistency or I can pick this up in my follow-up.
+
+      '
+    path: app/src/components/meridian/shared/AccreditationModal/Steps/FormStep/index.tsx
+    created_at: '2026-03-23T06:34:14Z'
+  replies:
+  - id: 2973151779
+    author: devin-ai-integration[bot]
+    body: Good call — added `organizationId` and `organizationHandle` to `trackIPPApplicationCompleted()`
+      for consistency with `trackOnboardingComplete`. Pushed in 8ca28c65e.
+    created_at: '2026-03-23T06:36:35Z'
+  pr_author: app/devin-ai-integration
+  merged_at: '2026-03-23T19:03:21Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2976562643
+  pr: 7374
+  root:
+    id: 2976562643
+    author: ywplee-al
+    body: "@tydoremus  I think you wanted to keep the self-activate tracking here?\
+      \ we should just rename it to \"meridian_self_activation\" or something similar?\
+      \ \n"
+    path: app/src/pages/m/self-activate.tsx
+    created_at: '2026-03-23T17:39:51Z'
+  replies:
+  - id: 2977157243
+    author: tydoremus
+    body: "Yes, that makes sense. \r\n"
+    created_at: '2026-03-23T19:35:06Z'
+  - id: 2977166626
+    author: devin-ai-integration[bot]
+    body: 'Done — restored the self-activation tracking with renamed events: `meridian_self_activation_viewed`
+      and `meridian_self_activation_completed`. Uses `captureEvent` directly instead
+      of the old `trackIPPStep*` helpers.'
+    created_at: '2026-03-23T19:37:08Z'
+  pr_author: app/devin-ai-integration
+  merged_at: '2026-03-23T20:08:07Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2976859851
+  pr: 7379
+  root:
+    id: 2976859851
+    author: michael-breedlove
+    body: revert the title change, previous value was correct.
+    path: app/src/components/views/DataRoomMember/GatePages/BrokerDealerSuitability/MpsTermsModal.tsx
+    created_at: '2026-03-23T18:36:14Z'
+  replies: []
+  pr_author: app/devin-ai-integration
+  merged_at: '2026-03-23T22:58:28Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2977845338
+  pr: 7380
+  root:
+    id: 2977845338
+    author: michael-breedlove
+    body: 'This only goes live for the ~50 users we''re emailing. We need to add the
+      feature flag first and circle back here to check it.
+
+
+      https://linear.app/angellistv/issue/MER-1645/build-sandlot-banner#comment-6af5026c'
+    path: app/src/components/meridian/views/Inbox/shared/Home/FeaturedSection.tsx
+    created_at: '2026-03-23T22:04:29Z'
+  replies: []
+  pr_author: app/devin-ai-integration
+  merged_at: '2026-03-23T23:09:38Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2978218885
+  pr: 7381
+  root:
+    id: 2978218885
+    author: JaredWF
+    body: I think you can replace usages of this with `findByAngellistId` above.
+    path: graph/src/data/account.ts
+    created_at: '2026-03-23T23:41:49Z'
+  replies:
+  - id: 2978426680
+    author: harshaneel
+    body: '`findByAngellistId` returns AccountWithOrgs which is a narrow interface
+      (id, angellistId, email, displayName, organizationMembers). `ServiceContext`
+      requires the full Prisma `Account` type which also has:
+
+      1. handle
+
+      2. legalName
+
+      3. settings
+
+      4. legalAgreements
+
+      5. createdAt
+
+
+      Using findByAngellistId would need an as unknown as Account cast to bridge the
+      gap. `findAccountByAngellistId` returns the full Account directly so we can
+      construct `ServiceContext` without any casting.'
+    created_at: '2026-03-24T00:59:00Z'
+  pr_author: harshaneel
+  merged_at: '2026-03-24T19:23:13Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2978226700
+  pr: 7381
+  root:
+    id: 2978226700
+    author: JaredWF
+    body: Just curious, why do we need to explicitly define the return type here?
+      It seems like a reasonable change but I'm curious what the issue is that this
+      solves.
+    path: graph/src/services/dataRoomAccessLink/upsert.ts
+    created_at: '2026-03-23T23:44:50Z'
+  replies:
+  - id: 2983022379
+    author: harshaneel
+    body: The way I understood this suggestion from Claude is that, TypeScript loses
+      track of the return type when a function is re-exported through multiple `index.ts`
+      files (barrel exports). Without the explicit annotation, callers see unknown
+      instead of the actual type. Adding it fixes it for everyone.
+    created_at: '2026-03-24T16:59:32Z'
+  pr_author: harshaneel
+  merged_at: '2026-03-24T19:23:13Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2978234617
+  pr: 7381
+  root:
+    id: 2978234617
+    author: JaredWF
+    body: We still have the name regeneration issue right? Can we modify `resolveLinkAttributes`
+      to handle not generating new names in the update case?
+    path: graph/src/routers/prophet/dataroom/accessLink/upsert.ts
+    created_at: '2026-03-23T23:48:01Z'
+  replies:
+  - id: 2978430921
+    author: harshaneel
+    body: Fixed that in the latest rev
+    created_at: '2026-03-24T01:00:54Z'
+  pr_author: harshaneel
+  merged_at: '2026-03-24T19:23:13Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2978246395
+  pr: 7381
+  root:
+    id: 2978246395
+    author: JaredWF
+    body: 'Nit: this is so small that it probably doesn''t need to be a helper function.'
+    path: graph/src/routers/prophet/dataroom/accessLink/upsert.ts
+    created_at: '2026-03-23T23:52:39Z'
+  replies:
+  - id: 2978430088
+    author: harshaneel
+    body: "I explicitly added that because otherwise callsite had this:\n```ts\nyield*\
+      \ services.dataRoomAccessLink.upsert(\n        buildUpsertArgs(args, defaultPermissionGroupId),\
+      \ { account }\n)\n```\n\nI find current version more readable than `{ account\
+      \ }`."
+    created_at: '2026-03-24T01:00:35Z'
+  pr_author: harshaneel
+  merged_at: '2026-03-24T19:23:13Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2978252812
+  pr: 7381
+  root:
+    id: 2978252812
+    author: JaredWF
+    body: 'Nit: I think we generally read code in the order of the call stack. This
+      file could more readable if it was ordered:
+
+      1. Request schema
+
+      2. Upsert function
+
+      3. Helper functions in call order (`requireAccount` and then `requireDefaultPermissionGroupId`
+
+
+      Overall, I do really like how you were able to keep the improved errors while
+      swapping to the generator pattern.'
+    path: graph/src/routers/prophet/dataroom/accessLink/upsert.ts
+    created_at: '2026-03-23T23:54:48Z'
+  replies: []
+  pr_author: harshaneel
+  merged_at: '2026-03-24T19:23:13Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2979065551
+  pr: 7334
+  root:
+    id: 2979065551
+    author: kwliang1
+    body: doesn't this return count = 0 when there isn't a record updated?
+    path: graph/src/lib/temporal/activities/mailproxyWebhook/processSentMailEvent.ts
+    created_at: '2026-03-24T05:19:50Z'
+  replies:
+  - id: 2979361222
+    author: ctotheameron
+    body: Yeah... thats the point - we log if there are no sends to update
+    created_at: '2026-03-24T06:33:19Z'
+  pr_author: ctotheameron
+  merged_at: '2026-03-24T07:04:18Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2979076320
+  pr: 7334
+  root:
+    id: 2979076320
+    author: kwliang1
+    body: why max?   These are email events? or the email sends themselves?
+    path: graph/src/lib/temporal/workflows/mailproxyWebhook/shared.ts
+    created_at: '2026-03-24T05:22:45Z'
+  replies:
+  - id: 2979080727
+    author: kwliang1
+    body: '> If we return any non-200 status code, mailproxy will not mark the individual
+
+      >  * events as processed, and will eventually call us again with the same events
+
+      >  * (the next webhook payload may include ADDITIONAL events as well).
+
+
+      Oh. then why retry at all?'
+    created_at: '2026-03-24T05:24:13Z'
+  - id: 2979369682
+    author: ctotheameron
+    body: "These are events that get sent from mailproxy to us - mailproxy has a durable\
+      \ webhook config that keeps a queue of unprocessed events. It will call us with\
+      \ a max of 20 events per call.\r\n\r\nOur retries are happening outside of the\
+      \ request/response lifecycle with mailproxy so once we \"ack\" the receipt of\
+      \ the message to mp, its up to us to make sure we take it across the line (hence\
+      \ the retries).\r\n\r\nThese values are relatively arbitrary (we can tweak them\
+      \ as needed)"
+    created_at: '2026-03-24T06:35:43Z'
+  pr_author: ctotheameron
+  merged_at: '2026-03-24T07:04:18Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2979087927
+  pr: 7334
+  root:
+    id: 2979087927
+    author: kwliang1
+    body: column*
+    path: packages/prisma/models/email.prisma
+    created_at: '2026-03-24T05:26:42Z'
+  replies:
+  - id: 2979370527
+    author: ctotheameron
+    body: "```suggestion\r\n  // Once mailproxy supports all that, we can completely\
+      \ drop this column\r\n```"
+    created_at: '2026-03-24T06:35:59Z'
+  pr_author: ctotheameron
+  merged_at: '2026-03-24T07:04:18Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2983382360
+  pr: 7392
+  root:
+    id: 2983382360
+    author: thibaut-pro
+    body: Does this need to be added on the Venture side as well? Also does it take
+      the flipper flag into account?
+    path: packages/sdk/venture/src/wedge_products/invest_account.tsp
+    created_at: '2026-03-24T18:01:11Z'
+  replies:
+  - id: 2983385061
+    author: devin-ai-integration[bot]
+    body: "Yes, the venture side is handled in the companion PR [venture#27028](https://github.com/angellist/venture/pull/27028).\
+      \ Specifically, the `invest_accounts_controller.rb` was updated to compute and\
+      \ return `has_deal_partnerships` in the JSON response:\n\n```ruby\nuser = requester\n\
+      has_deal_partnerships = (Flipper.enabled?(:carry_agreement_page, user) || user.admin?)\
+      \ &&\n  DealPartnership.where(partner_user: user, state: DealPartnership::CONFIRMED_BY_GP).exists?\n\
+      ```\n\nSo yes, it takes the `carry_agreement_page` flipper flag into account\
+      \ — the field is only `true` when the flag is enabled for the user (or they're\
+      \ an admin) AND they have confirmed deal partnerships."
+    created_at: '2026-03-24T18:01:38Z'
+  - id: 2984313435
+    author: cameronnapoli
+    body: I think we need another PR. I don't see this in `app/controllers/wedge_products/api/v1/invest_accounts_controller.rb`
+    created_at: '2026-03-24T21:15:34Z'
+  - id: 2984314722
+    author: devin-ai-integration[bot]
+    body: 'The venture-side change is in a separate PR: https://github.com/angellist/venture/pull/27028
+      — that PR adds `has_deal_partnerships` to `invest_accounts_controller.rb`. It
+      needs to be deployed before this nova PR.'
+    created_at: '2026-03-24T21:15:53Z'
+  - id: 2984806020
+    author: cameronnapoli
+    body: '@angellist-cicd-devin Are you referencing the wrong PR? I don''t see `app/controllers/wedge_products/api/v1/invest_accounts_controller.rb`
+      touched in that PR.'
+    created_at: '2026-03-24T23:00:41Z'
+  - id: 2984821008
+    author: devin-ai-integration[bot]
+    body: 'You''re right — the controller change was lost during the squash merge
+      of #27028 (only the frontend `meridian.ts` change landed on main). I''ve created
+      a new PR with just the controller change: https://github.com/angellist/venture/pull/27071'
+    created_at: '2026-03-24T23:05:34Z'
+  pr_author: app/devin-ai-integration
+  merged_at: '2026-03-26T09:37:31Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2984280518
+  pr: 7338
+  root:
+    id: 2984280518
+    author: edwinzhng
+    body: The page was not updating with the fetched distribution if modifying an
+      existing draft
+    path: app/src/components/shared/NewDistributionModal/Steps/Details/index.tsx
+    created_at: '2026-03-24T21:08:53Z'
+  replies: []
+  pr_author: edwinzhng
+  merged_at: '2026-03-26T22:36:03Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2984987880
+  pr: 7405
+  root:
+    id: 2984987880
+    author: ywplee-al
+    body: 'just create a local component for this '
+    path: app/src/components/views/TransactionSender/SendReminderModal/index.tsx
+    created_at: '2026-03-24T23:58:02Z'
+  replies: []
+  pr_author: ywplee-al
+  merged_at: '2026-03-31T16:51:23Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2984990395
+  pr: 7405
+  root:
+    id: 2984990395
+    author: ywplee-al
+    body: not very readable code here
+    path: graph/src/internal/schema/transaction/sendReminderEmail.ts
+    created_at: '2026-03-24T23:59:04Z'
+  replies: []
+  pr_author: ywplee-al
+  merged_at: '2026-03-31T16:51:23Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2989900634
+  pr: 7412
+  root:
+    id: 2989900634
+    author: ahlec
+    body: "Instead of using `userSeeder.name`, let's change the constructor for `AccountProto`\
+      \ to:\n```typescript\npublic constructor(\n  commandManager: CommandManager,\n\
+      \  private readonly name: string\n)\n```\nI view the seeders as being the authority\
+      \ on data related to the database — so things like DB IDs, handles, or emails\
+      \ that have a uniqueness constraint on them. But for all other data, I think\
+      \ the protos are a more natural source of truth to use."
+    path: nova-e2e/tests/fixtures/nova/protos/accountProto.ts
+    created_at: '2026-03-25T17:38:39Z'
+  replies: []
+  pr_author: ctotheameron
+  merged_at: '2026-03-26T05:44:28Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2989944128
+  pr: 7412
+  root:
+    id: 2989944128
+    author: ahlec
+    body: For consistency, does it make more sense to use `data-testid` here rather
+      than `id`? Either would work, but I think the latter is clearer on intent and
+      scope of usage.
+    path: app/src/components/views/ProcessReview/ReviewItemRow.tsx
+    created_at: '2026-03-25T17:45:43Z'
+  replies: []
+  pr_author: ctotheameron
+  merged_at: '2026-03-26T05:44:28Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2989987641
+  pr: 7412
+  root:
+    id: 2989987641
+    author: ahlec
+    body: What's the context for the change here?
+    path: app/src/components/views/TransactionItem/index.tsx
+    created_at: '2026-03-25T17:53:16Z'
+  replies:
+  - id: 2991708458
+    author: ctotheameron
+    body: "This was causing crashes due to a race when the routing. We are actually\
+      \ doing a navigation here and I couldn't see any issues with not having this.\
+      \ \n\nI could add it back and swallow the errors instead if that feels safer.\
+      \ \n\nSorry I forgot to comment on this one "
+    created_at: '2026-03-25T23:48:53Z'
+  pr_author: ctotheameron
+  merged_at: '2026-03-26T05:44:28Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2990227624
+  pr: 7403
+  root:
+    id: 2990227624
+    author: ywplee-al
+    body: 'should use pluralize '
+    path: app/src/components/views/Members/InviteEditMemberBlade/FormSections/EntityPermissions/index.tsx
+    created_at: '2026-03-25T18:33:20Z'
+  replies: []
+  pr_author: ywplee-al
+  merged_at: '2026-03-26T02:37:51Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2990229086
+  pr: 7403
+  root:
+    id: 2990229086
+    author: ywplee-al
+    body: pluralize?
+    path: app/src/components/views/Members/MembersTable/columns/permissions.tsx
+    created_at: '2026-03-25T18:33:38Z'
+  replies: []
+  pr_author: ywplee-al
+  merged_at: '2026-03-26T02:37:51Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2990318796
+  pr: 7408
+  root:
+    id: 2990318796
+    author: ywplee-al
+    body: 'i guess this is fine if this is the only solution but invalidating the
+      cache and doing router redirect doesn''t work here? '
+    path: app/src/components/meridian/layouts/MeridianNavigation/index.tsx
+    created_at: '2026-03-25T18:50:18Z'
+  replies:
+  - id: 2990454083
+    author: michael-breedlove
+    body: "No, that's exactly what happens in useUpdateInvestorProfile and useUpdateInvestorPreferences,\
+      \ which is what caused the bug in the first place.\r\n\r\nThis works for now,\
+      \ but the long-term fix is either making Apollo properly detect missing fields\
+      \ on the `capital` namespace, making the mutations more surgical about what\
+      \ they invalidate, or reworking pagination so we can use a more aggressive fetch\
+      \ policy like `cache-and-network`."
+    created_at: '2026-03-25T19:15:25Z'
+  pr_author: michael-breedlove
+  merged_at: '2026-03-26T17:50:21Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2991098317
+  pr: 7406
+  root:
+    id: 2991098317
+    author: ywplee-al
+    body: let's create stable callback
+    path: app/src/components/views/StartTransactionTail/TailFlow/EntitySelectPanel/OrganizationSelect.tsx
+    created_at: '2026-03-25T21:17:03Z'
+  replies: []
+  pr_author: ywplee-al
+  merged_at: '2026-03-26T16:40:42Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2991099490
+  pr: 7415
+  root:
+    id: 2991099490
+    author: cbzehner
+    body: I was worried about this but you handled it on the venture side so lgtm!
+    path: packages/sdk/venture/src/wedge_products/invest_account.tsp
+    created_at: '2026-03-25T21:17:17Z'
+  replies: []
+  pr_author: cameronnapoli
+  merged_at: '2026-03-25T21:28:54Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2991145947
+  pr: 7419
+  root:
+    id: 2991145947
+    author: ywplee-al
+    body: 'let''s not create more index file, fun read
+
+
+      https://www.notion.so/P-PS-Frontend-Barrel-Files-31161e86666280968425cf29ad7c0445?source=copy_link'
+    path: app/src/components/meridian/views/DirectInvitesView.tsx
+    created_at: '2026-03-25T21:28:13Z'
+  replies:
+  - id: 2991208724
+    author: michael-breedlove
+    body: '@ywplee-al I agree with not using barrel files. This file is just a component
+      with no additional exports but I''m happy to rename, do you have any preference?
+      Something like `DirectInvitesView/DirectInvitesView.tsx`?'
+    created_at: '2026-03-25T21:38:48Z'
+  - id: 2991245817
+    author: michael-breedlove
+    body: I think I'll just bump this up out of the new directory to `app/src/components/meridian/views/DirectInvitesView.tsx`
+    created_at: '2026-03-25T21:44:32Z'
+  pr_author: michael-breedlove
+  merged_at: '2026-03-25T22:16:13Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2991258943
+  pr: 7406
+  root:
+    id: 2991258943
+    author: ywplee-al
+    body: do we need this change here?
+    path: nova-e2e/tests/pages/start-transaction/entitySelect.ts
+    created_at: '2026-03-25T21:46:34Z'
+  replies: []
+  pr_author: ywplee-al
+  merged_at: '2026-03-26T16:40:42Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2991268156
+  pr: 7406
+  root:
+    id: 2991268156
+    author: ywplee-al
+    body: <img width="1167" height="679" alt="Image" src="https://github.com/user-attachments/assets/1041f568-5107-4ee8-98a8-79e4c9e5a380"
+      />
+    path: app/src/components/views/StartTransactionTail/TailFlow/EntitySelectPanel/OrganizationSelect.tsx
+    created_at: '2026-03-25T21:48:07Z'
+  replies: []
+  pr_author: ywplee-al
+  merged_at: '2026-03-26T16:40:42Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2991487392
+  pr: 7403
+  root:
+    id: 2991487392
+    author: FoodProduct
+    body: I don't think we want this change because it can result in "Same permission
+      for all entity." Either leave as-is or have a more specific update to the wording
+      (I'd leave as-is personally).
+    path: app/src/components/views/Members/InviteEditMemberBlade/FormSections/EntityPermissions/index.tsx
+    created_at: '2026-03-25T22:40:48Z'
+  replies:
+  - id: 2991737838
+    author: ywplee-al
+    body: 'this is always pluralized, no? '
+    created_at: '2026-03-25T23:59:26Z'
+  - id: 2991898937
+    author: FoodProduct
+    body: 'Oh interesting -- I''ve never used pluralize without passing in a count.
+      I assumed it resulted in a singular. TIL 💡 '
+    created_at: '2026-03-26T01:02:51Z'
+  pr_author: ywplee-al
+  merged_at: '2026-03-26T02:37:51Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2991497035
+  pr: 7403
+  root:
+    id: 2991497035
+    author: FoodProduct
+    body: Ah, the beauty of avoiding lodash 🙄. May as well make a helper/util for
+      this since we're repeating below.
+    path: app/src/components/views/Members/InviteEditMemberBlade/FormSections/EntityPermissions/index.tsx
+    created_at: '2026-03-25T22:43:05Z'
+  replies:
+  - id: 2991687042
+    author: ywplee-al
+    body: 'eh i can just use lodash, forgot about it '
+    created_at: '2026-03-25T23:41:37Z'
+  pr_author: ywplee-al
+  merged_at: '2026-03-26T02:37:51Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2991498571
+  pr: 7403
+  root:
+    id: 2991498571
+    author: FoodProduct
+    body: Also probably shouldn't be non-plural -- revert
+    path: app/src/components/views/Members/InviteEditMemberBlade/FormSections/EntityPermissions/useEntityTable.tsx
+    created_at: '2026-03-25T22:43:31Z'
+  replies:
+  - id: 2991748024
+    author: ywplee-al
+    body: 'hm this is always pluralized? '
+    created_at: '2026-03-26T00:03:44Z'
+  pr_author: ywplee-al
+  merged_at: '2026-03-26T02:37:51Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2991499321
+  pr: 7403
+  root:
+    id: 2991499321
+    author: FoodProduct
+    body: Also shouldn't be singular
+    path: app/src/components/views/Members/MembersTable/columns/permissions.tsx
+    created_at: '2026-03-25T22:43:47Z'
+  replies:
+  - id: 2991735945
+    author: ywplee-al
+    body: 'isn''t this always pluralized? '
+    created_at: '2026-03-25T23:58:43Z'
+  pr_author: ywplee-al
+  merged_at: '2026-03-26T02:37:51Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2991604785
+  pr: 7421
+  root:
+    id: 2991604785
+    author: ywplee-al
+    body: should happen inside of provider?
+    path: app/src/components/meridian/shared/WelcomeModal/WelcomeModal.test.tsx
+    created_at: '2026-03-25T23:15:44Z'
+  replies:
+  - id: 2991778195
+    author: ywplee-al
+    body: Addressed — ADAPT and design-tokens are now auto-mocked globally via `vitest.setup.ts`
+      using `importOriginal` + custom overrides. Tests no longer need explicit `vi.mock`
+      calls.
+    created_at: '2026-03-26T00:14:24Z'
+  pr_author: ywplee-al
+  merged_at: '2026-03-27T18:57:02Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2991605923
+  pr: 7421
+  root:
+    id: 2991605923
+    author: ywplee-al
+    body: 'can we have both `renderWithProviers` and `<TestProviders>` '
+    path: app/src/components/shared/DataRoomTable/components/DocumentsTable/components/FileFolderRow/FileRow/FileCategoryPicker/FileCategoryPicker.test.tsx
+    created_at: '2026-03-25T23:16:07Z'
+  replies:
+  - id: 2991778269
+    author: ywplee-al
+    body: Done — both `renderWithProviders` and `<TestProviders>` are exported
+    created_at: '2026-03-26T00:14:26Z'
+  pr_author: ywplee-al
+  merged_at: '2026-03-27T18:57:02Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2991606826
+  pr: 7421
+  root:
+    id: 2991606826
+    author: ywplee-al
+    body: this is unrleated changes
+    path: app/src/components/shared/Transactions/ShareBlade/MemberRow.tsx
+    created_at: '2026-03-25T23:16:24Z'
+  replies: []
+  pr_author: ywplee-al
+  merged_at: '2026-03-27T18:57:02Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2991771334
+  pr: 7421
+  root:
+    id: 2991771334
+    author: ywplee-al
+    body: lf this is a new directory, rename it to test-utils or util based on repo
+      convention
+    path: app/test/utils/adapt.tsx
+    created_at: '2026-03-26T00:11:57Z'
+  replies:
+  - id: 2991778047
+    author: ywplee-al
+    body: Fixed — renamed `mocks/` to `utils/`
+    created_at: '2026-03-26T00:14:21Z'
+  pr_author: ywplee-al
+  merged_at: '2026-03-27T18:57:02Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2992492417
+  pr: 7413
+  root:
+    id: 2992492417
+    author: Copilot
+    body: 'The spec file name (`in-good-order.spec.ts`) and the test name focus on
+      “Confirmed”, while the flow asserts multiple states (Submitted → In Good Order
+      → Confirmed). Consider renaming the file and/or test title so it’s clear what
+      state machine coverage this spec provides (and consistent with `rejected.spec.ts`).
+
+      ```suggestion
+
+      test(''View Process - Submitted → In Good Order → Confirmed'', async ({ data:
+      { template, sender, recipient } }) => {
+
+      ```'
+    path: nova-e2e/tests/specs/transact/view-process/in-good-order.spec.ts
+    created_at: '2026-03-26T05:06:05Z'
+  replies: []
+  pr_author: ctotheameron
+  merged_at: '2026-03-27T02:51:46Z'
+  repo: nova
+  has_suggestion_block: true
+- thread_id: 2992492442
+  pr: 7413
+  root:
+    id: 2992492442
+    author: Copilot
+    body: 'The test title has a trailing space (`''View Process - Confirmed ''`).
+      This shows up in test output and makes filtering/matching harder; remove the
+      extra whitespace.
+
+      ```suggestion
+
+      test(''View Process - Confirmed'', async ({ data: { template, sender, recipient
+      } }) => {
+
+      ```'
+    path: nova-e2e/tests/specs/transact/view-process/in-good-order.spec.ts
+    created_at: '2026-03-26T05:06:05Z'
+  replies: []
+  pr_author: ctotheameron
+  merged_at: '2026-03-27T02:51:46Z'
+  repo: nova
+  has_suggestion_block: true
+- thread_id: 2992492453
+  pr: 7413
+  root:
+    id: 2992492453
+    author: Copilot
+    body: '`senderReviewPage` is assigned from `verifySubmittedAsSender(...)`, which
+      currently returns a sender *item* review page (via `goToItem(...)`), not the
+      process overview/review page. Rename this variable to reflect what it actually
+      is (e.g., `senderSignItemPage`) to avoid confusion when reading the flow.'
+    path: nova-e2e/tests/specs/transact/view-process/in-good-order.spec.ts
+    created_at: '2026-03-26T05:06:05Z'
+  replies: []
+  pr_author: ctotheameron
+  merged_at: '2026-03-27T02:51:46Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2992500842
+  pr: 7412
+  root:
+    id: 2992500842
+    author: Copilot
+    body: The test title has a trailing space (`'View Process - Rejected '`). This
+      makes grep/filtering by test name harder and can be confusing in CI output;
+      please remove the trailing whitespace.
+    path: nova-e2e/tests/specs/transact/view-process/rejected.spec.ts
+    created_at: '2026-03-26T05:08:05Z'
+  replies: []
+  pr_author: ctotheameron
+  merged_at: '2026-03-26T05:44:28Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2992500870
+  pr: 7412
+  root:
+    id: 2992500870
+    author: Copilot
+    body: 'Typo in comment: "Entity Inormation" -> "Entity Information".'
+    path: nova-e2e/tests/specs/transact/view-process/rejected.spec.ts
+    created_at: '2026-03-26T05:08:05Z'
+  replies: []
+  pr_author: ctotheameron
+  merged_at: '2026-03-26T05:44:28Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2992500902
+  pr: 7412
+  root:
+    id: 2992500902
+    author: Copilot
+    body: '`verifySenderProcessOverviewPage` takes a `recipient: User` but hard-codes
+      the expected entity name to `''Recipient''`. This makes the helper less reusable
+      and can hide issues if a different recipient name is used in future tests; prefer
+      asserting against `recipient.name` here.'
+    path: nova-e2e/tests/specs/transact/view-process/verify.ts
+    created_at: '2026-03-26T05:08:05Z'
+  replies: []
+  pr_author: ctotheameron
+  merged_at: '2026-03-26T05:44:28Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2992500941
+  pr: 7412
+  root:
+    id: 2992500941
+    author: Copilot
+    body: '`FillOptions` includes a `sign?: boolean` flag that is never read inside
+      `createFillTransaction` (and no callers appear to pass it). This is dead API
+      surface and can confuse future usage; either implement the behavior (e.g. perform
+      signing when `sign` is true) or remove the option from the type.'
+    path: nova-e2e/tests/specs/common/transaction.ts
+    created_at: '2026-03-26T05:08:06Z'
+  replies: []
+  pr_author: ctotheameron
+  merged_at: '2026-03-26T05:44:28Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2992500968
+  pr: 7412
+  root:
+    id: 2992500968
+    author: Copilot
+    body: "`new Date(element.value)` is parsing a non-ISO `MM-DD-YYYY` string, which\
+      \ is implementation-dependent and can become flaky across runtimes/timezones.\
+      \ Parse `element.value` explicitly (split into month/day/year and construct\
+      \ the date) or use the same formatting logic as the app (dayjs.utc + `MMM D,\
+      \ YYYY`) to generate the expected string deterministically.\n```suggestion\n\
+      \        const [monthStr, dayStr, yearStr] = String(element.value).split('-');\n\
+      \        const month = Number(monthStr);\n        const day = Number(dayStr);\n\
+      \        const year = Number(yearStr);\n        const date = new Date(year,\
+      \ month - 1, day);\n```"
+    path: nova-e2e/tests/pages/vulcan/reviewVulcanVerifier.ts
+    created_at: '2026-03-26T05:08:06Z'
+  replies: []
+  pr_author: ctotheameron
+  merged_at: '2026-03-26T05:44:28Z'
+  repo: nova
+  has_suggestion_block: true
+- thread_id: 2992501014
+  pr: 7412
+  root:
+    id: 2992501014
+    author: Copilot
+    body: "This assertion retries the click based on `not.toHaveURL(..., { timeout:\
+      \ 500 })`. If navigation after a successful click takes >500ms, the assertion\
+      \ can fail and trigger an extra click while the page is already navigating,\
+      \ which can create additional flakiness. Consider separating concerns: retry\
+      \ only the click until it registers, then wait for the URL change with a single\
+      \ longer timeout (or wait on a specific post-close element).\n```suggestion\n\
+      \    }).toPass({ timeout: 10_000 });\n\n    await expect(this.page).not.toHaveURL(URL_REGEX,\
+      \ { timeout: 10_000 });\n```"
+    path: nova-e2e/tests/pages/transactions/transactionItemPage.ts
+    created_at: '2026-03-26T05:08:06Z'
+  replies: []
+  pr_author: ctotheameron
+  merged_at: '2026-03-26T05:44:28Z'
+  repo: nova
+  has_suggestion_block: true
+- thread_id: 2992501035
+  pr: 7412
+  root:
+    id: 2992501035
+    author: Copilot
+    body: "`resetStore()` rejection is being passed to `errorTrackerClient.warning`,\
+      \ but `warning` currently forwards directly to `Sentry.captureMessage` and expects\
+      \ a string. If `resetStore()` rejects with an `Error` object, this will capture\
+      \ a non-string message (or a low-signal \"[object Object]\"). Consider coercing\
+      \ to a string (e.g. `String(err)`) or using `errorTrackerClient.error(err)`\
+      \ so non-string errors are handled consistently.\n```suggestion\n          await\
+      \ apolloClient?.resetStore().catch((err) => errorTrackerClient.error(err));\n\
+      ```"
+    path: app/src/components/views/TransactionItem/index.tsx
+    created_at: '2026-03-26T05:08:06Z'
+  replies: []
+  pr_author: ctotheameron
+  merged_at: '2026-03-26T05:44:28Z'
+  repo: nova
+  has_suggestion_block: true
+- thread_id: 2992684376
+  pr: 7406
+  root:
+    id: 2992684376
+    author: ctotheameron
+    body: Why do we have to mock all of this?
+    path: app/src/components/views/StartTransactionTail/TailFlow/EntitySelectPanel/OrganizationSelect.test.tsx
+    created_at: '2026-03-26T06:05:20Z'
+  replies:
+  - id: 2992868639
+    author: ywplee-al
+    body: Good catch — tested each mock individually and only `ThemableSelect` is
+      actually needed (the tests use mocked `data-testid` buttons to simulate selection).
+      Removed the other 3 mocks (`adapt`, `adapt-react-hook-form`, `entityElements`)
+      in dd7365dd3.
+    created_at: '2026-03-26T06:57:52Z'
+  pr_author: ywplee-al
+  merged_at: '2026-03-26T16:40:42Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2992705325
+  pr: 7405
+  root:
+    id: 2992705325
+    author: ctotheameron
+    body: "We should use react-hook-form + adapt [SelectList](https://adapt.internal.angellist.com/form-components/SelectList)\
+      \ for this. \n\nShould simplify your state management logic\n\n"
+    path: app/src/components/views/TransactionSender/SendReminderModal/index.tsx
+    created_at: '2026-03-26T06:12:02Z'
+  replies:
+  - id: 2996289119
+    author: ywplee-al
+    body: ah nice
+    created_at: '2026-03-26T16:43:28Z'
+  pr_author: ywplee-al
+  merged_at: '2026-03-31T16:51:23Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2992712028
+  pr: 7405
+  root:
+    id: 2992712028
+    author: ctotheameron
+    body: All this state management should go away / simplified when we move to SelectList
+      + RHF
+    path: app/src/components/views/TransactionSender/SendReminderModal/index.tsx
+    created_at: '2026-03-26T06:13:56Z'
+  replies: []
+  pr_author: ywplee-al
+  merged_at: '2026-03-31T16:51:23Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2992741526
+  pr: 7405
+  root:
+    id: 2992741526
+    author: ctotheameron
+    body: Think we can move this ternary inside of the resolve function
+    path: graph/src/internal/schema/transaction/sendReminderEmail.ts
+    created_at: '2026-03-26T06:21:52Z'
+  replies: []
+  pr_author: ywplee-al
+  merged_at: '2026-03-31T16:51:23Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2992745514
+  pr: 7405
+  root:
+    id: 2992745514
+    author: ctotheameron
+    body: 'We should migrate this to an adapt (react hook form) selectlist unless
+      there''s a good reason not to.
+
+
+      Additionally, we should refactor a bit to lean into react-hook form components
+      to leverage the state management in rhf.'
+    path: app/src/components/views/TransactionSender/SendReminderModal/index.tsx
+    created_at: '2026-03-26T06:23:05Z'
+  replies:
+  - id: 2996290110
+    author: ywplee-al
+    body: sounds good
+    created_at: '2026-03-26T16:43:39Z'
+  pr_author: ywplee-al
+  merged_at: '2026-03-31T16:51:23Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2992747146
+  pr: 7405
+  root:
+    id: 2992747146
+    author: ctotheameron
+    body: much if not all of this state management should be able to be handled by
+      react hook form + selectlist
+    path: app/src/components/views/TransactionSender/SendReminderModal/index.tsx
+    created_at: '2026-03-26T06:23:36Z'
+  replies: []
+  pr_author: ywplee-al
+  merged_at: '2026-03-31T16:51:23Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2992751315
+  pr: 7405
+  root:
+    id: 2992751315
+    author: ctotheameron
+    body: from the screenshot, I didn't see a place where we're accepting text input
+      for arbitrary emails - could we change this to be member ids?
+    path: graph/src/internal/schema/transaction/sendReminderEmail.ts
+    created_at: '2026-03-26T06:24:52Z'
+  replies: []
+  pr_author: ywplee-al
+  merged_at: '2026-03-31T16:51:23Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2992753860
+  pr: 7405
+  root:
+    id: 2992753860
+    author: ctotheameron
+    body: Related to my comment above, can this be simplified as just a filter (maybe
+      in the db layer) of participants matching the incoming ids?
+    path: graph/src/internal/schema/transaction/sendReminderEmail.ts
+    created_at: '2026-03-26T06:25:41Z'
+  replies: []
+  pr_author: ywplee-al
+  merged_at: '2026-03-31T16:51:23Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2992755564
+  pr: 7405
+  root:
+    id: 2992755564
+    author: ctotheameron
+    body: '[nit] there''s some duplication between these two email sends - should
+      be able to dry up'
+    path: graph/src/internal/schema/transaction/sendReminderEmail.ts
+    created_at: '2026-03-26T06:26:12Z'
+  replies: []
+  pr_author: ywplee-al
+  merged_at: '2026-03-31T16:51:23Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2992776383
+  pr: 7405
+  root:
+    id: 2992776383
+    author: ctotheameron
+    body: 'Wait, maybe I''m confused, but isn''t the ticket meant to be GPs wanting
+      to nudge specific *LP* participants?
+
+
+      Edit: I see this is like "the sender view" of participants. Poorly named field.
+      Carry on'
+    path: app/src/components/views/TransactionSender/SendReminderModal/index.tsx
+    created_at: '2026-03-26T06:32:39Z'
+  replies:
+  - id: 2996358411
+    author: ywplee-al
+    body: 'haha yeah '
+    created_at: '2026-03-26T16:56:09Z'
+  pr_author: ywplee-al
+  merged_at: '2026-03-31T16:51:23Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2997196150
+  pr: 7436
+  root:
+    id: 2997196150
+    author: harshaneel
+    body: '@JaredWF Why are doing this? Just curious.'
+    path: graph/src/services/dataRoomAccessLink/upsert.ts
+    created_at: '2026-03-26T19:23:41Z'
+  replies:
+  - id: 2997621711
+    author: JaredWF
+    body: '`angelListUser` is optional in our graphql mutation context. It turns out
+      that we have a few thousand accounts in nova without angellist user ids. The
+      function that this function calls already handles undefined so I''m basically
+      just letting the type flow through.'
+    created_at: '2026-03-26T20:55:15Z'
+  pr_author: JaredWF
+  merged_at: '2026-03-31T20:37:37Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2997254597
+  pr: 7338
+  root:
+    id: 2997254597
+    author: kwliang1
+    body: loom next time would be helpful.   I don't know what page this index maps
+      to?
+    path: app/src/components/views/Distribution/SetupTab/index.tsx
+    created_at: '2026-03-26T19:35:15Z'
+  replies: []
+  pr_author: edwinzhng
+  merged_at: '2026-03-26T22:36:03Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2997337891
+  pr: 7418
+  root:
+    id: 2997337891
+    author: michael-breedlove
+    body: '@cameronnapoli like we discussed, we''re not optimizing for performance
+      here, but there''s a potential performance hit when a GP publishes an update
+      after inviting tens of LPs, the matchmaking process checks the organization
+      of each invited LP to see if their feature flag is enabled. That''s a sequential
+      HTTP call per LP. The intersection of matchmaking hits and directly-invited
+      orgs should be small, but it could add up.
+
+
+      If the direct invites rollout is quick, this should be okay as we will remove
+      the check. If it''s a slow rollout, we might want to attempt to optimize with
+      Promise.all or similar.
+
+
+      This only applies to searchFromOpportunity, searchfromOrganization only has
+      to check the one org.'
+    path: capital-api/lib/opportunity/match/search/searchFromOpportunity.ts
+    created_at: '2026-03-26T19:53:10Z'
+  replies:
+  - id: 2997759075
+    author: cameronnapoli
+    body: Maybe we can add a `fetchOrganizations`, so that we only have a single cross-service
+      call?
+    created_at: '2026-03-26T21:28:20Z'
+  - id: 2997812407
+    author: ywplee-al
+    body: "i don't think it's worth adding this but we can do this if this becomes\
+      \ a problem \n``` js\n  // 1. Collect\n  const orgsToCheck = [...new Set(\n\
+      \    hits.filter(h => directInviteOrgIdSet.has(h.organizationId)).map(h => h.organizationId)\n\
+      \  )];\n\n  // 2. Fetch in parallel (still N calls, but concurrent not sequential)\n\
+      \  const orgResults = await Promise.all(\n    orgsToCheck.map(id => fetchOrganization({\
+      \ orgId: id }))\n  );\n  const excludeSet = new Set(\n    orgResults.filter(o\
+      \ => o?.enableDirectInvitesConsolidation).map(o => o!.id)\n  );\n\n  // 3. Filter\n\
+      \  return hits.filter(h => !excludeSet.has(h.organizationId));\n```"
+    created_at: '2026-03-26T21:40:57Z'
+  - id: 2998373969
+    author: michael-breedlove
+    body: "Updated to use promiseUtils.map\r\n\r\n"
+    created_at: '2026-03-27T00:24:38Z'
+  pr_author: michael-breedlove
+  merged_at: '2026-03-27T23:48:09Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2997532470
+  pr: 7418
+  root:
+    id: 2997532470
+    author: cameronnapoli
+    body: Feels like the `membersRouter` would be a better place for this
+    path: graph/src/routers/internal/dataroom/index.ts
+    created_at: '2026-03-26T20:35:13Z'
+  replies:
+  - id: 2998346479
+    author: michael-breedlove
+    body: Good call, moved.
+    created_at: '2026-03-27T00:12:56Z'
+  pr_author: michael-breedlove
+  merged_at: '2026-03-27T23:48:09Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2997770483
+  pr: 7418
+  root:
+    id: 2997770483
+    author: ywplee-al
+    body: nice
+    path: capital-api/lib/opportunity/match/search/searchFromOpportunity.ts
+    created_at: '2026-03-26T21:31:26Z'
+  replies:
+  - id: 2997806097
+    author: ywplee-al
+    body: 'i wonder, if it''s worth logging size of hits to assess blast radius '
+    created_at: '2026-03-26T21:39:39Z'
+  - id: 2998371685
+    author: michael-breedlove
+    body: Good call, added.
+    created_at: '2026-03-27T00:23:41Z'
+  pr_author: michael-breedlove
+  merged_at: '2026-03-27T23:48:09Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2997920980
+  pr: 7423
+  root:
+    id: 2997920980
+    author: edwinzhng
+    body: "Actually will this ever hit? Seems like we fetch the incomplete process\
+      \ via:\n```\nconst firstIncompleteProcessPromise = shouldFetchFirstIncompleteProcess\n\
+      \    ? apolloClient\n        .query<UseAutoStartProcessQuery>({\n          query:\
+      \ QUERY,\n          variables: { transactionRecipientId: recipientId },\n  \
+      \      })\n```\n\nBut that means `isAutoStart` will always be true when `startProcess`\
+      \ exists, so we always hit the return condition on line 29? "
+    path: app/lib/transactions/resolveAutoStartRedirect.ts
+    created_at: '2026-03-26T22:10:06Z'
+  replies:
+  - id: 2998172350
+    author: ywplee-al
+    body: 'ah right, i don''t think we can hit this line with the current setup, unless
+      a future caller want this to be non auto-start. I guess it''s something we can
+      support from here? We can remove it but seems like a good option to have? '
+    created_at: '2026-03-26T23:09:19Z'
+  - id: 3002089084
+    author: ywplee-al
+    body: '@edwinzhng let me know, i can remove if you prefer '
+    created_at: '2026-03-27T16:50:30Z'
+  - id: 3010782399
+    author: edwinzhng
+    body: 'I think let''s just remove for now so we can simplify the logic, it''s
+      easy to add back later if we ever need it but feels unlikely to me
+
+      '
+    created_at: '2026-03-30T16:09:12Z'
+  pr_author: ywplee-al
+  merged_at: '2026-03-30T16:09:57Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2998005734
+  pr: 7421
+  root:
+    id: 2998005734
+    author: ywplee-al
+    body: example of gql clean up
+    path: app/src/components/meridian/shared/Opportunity/OpportunityBlade/OpportunityContent.test.tsx
+    created_at: '2026-03-26T22:33:44Z'
+  replies: []
+  pr_author: ywplee-al
+  merged_at: '2026-03-27T18:57:02Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2998006949
+  pr: 7421
+  root:
+    id: 2998006949
+    author: ywplee-al
+    body: 'example of adapt mock clean up '
+    path: app/src/components/meridian/shared/OpportunityManager/FundLeadSection.test.tsx
+    created_at: '2026-03-26T22:34:09Z'
+  replies: []
+  pr_author: ywplee-al
+  merged_at: '2026-03-27T18:57:02Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2998045585
+  pr: 7441
+  root:
+    id: 2998045585
+    author: edwinzhng
+    body: Why do we have to build this manually? Does the fragment not already contain
+      these?
+    path: app/src/components/views/TransactionSender/PageActions/types.ts
+    created_at: '2026-03-26T22:41:40Z'
+  replies:
+  - id: 2998080311
+    author: ahlec
+    body: Actually, it looks like it does. The imported `Transaction` type here doesn't,
+      but the variable we're feeding in already has it w/o needing to manually add
+      them. I adapted this from what was there before, where it was assembling manually.
+      Let me see if I can update this real quick
+    created_at: '2026-03-26T22:47:40Z'
+  pr_author: ahlec
+  merged_at: '2026-03-26T23:58:12Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2998130178
+  pr: 7427
+  root:
+    id: 2998130178
+    author: ywplee-al
+    body: 'yeah,  this is why i hate using localStorage 🤷 '
+    path: app/src/components/meridian/views/DirectInvites/DirectInvitesCallout.tsx
+    created_at: '2026-03-26T22:58:27Z'
+  replies: []
+  pr_author: michael-breedlove
+  merged_at: '2026-03-27T16:20:38Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2998327620
+  pr: 7434
+  root:
+    id: 2998327620
+    author: ahlec
+    body: "This is a bit of a nit, but I think if we're looking to add this to all\
+      \ member creations, I'd chain this in `OrganizationMember.createMember` and\
+      \ `OrganizationMember.addMember`, like:\n```typescript\npublic createMember(name:\
+      \ string, role: 'admin' | 'member'): MemberWithoutPageProto {\n  const account\
+      \ = new AccountProto(this.commandManager, name);\n  const member = new MemberWithoutPageProto(this.commandManager,\
+      \ account, this.orgSeederVoucher, role);\n  member.setDefaultEntityPermissions();\n\
+      \  return member;\n}\n```\nIt's kind of just a gut sense thing, but I think\
+      \ that's a little clearer."
+    path: nova-e2e/tests/fixtures/nova/protos/memberWithoutPageProto.ts
+    created_at: '2026-03-27T00:04:44Z'
+  replies: []
+  pr_author: ctotheameron
+  merged_at: '2026-03-27T03:15:40Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2998339377
+  pr: 7434
+  root:
+    id: 2998339377
+    author: ahlec
+    body: This'll need mirroring **pipeline.rb** changes
+    path: nova-e2e/graph.env
+    created_at: '2026-03-27T00:09:48Z'
+  replies: []
+  pr_author: ctotheameron
+  merged_at: '2026-03-27T03:15:40Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2998348224
+  pr: 7434
+  root:
+    id: 2998348224
+    author: ahlec
+    body: 'This feels weird to me to see in **TemplateProto**. I''m not familiar with
+      the function, but from the name and skimming the implementation it seems like
+      it''s not directly related to templates (vs. something more generic that maybe
+      templates could play a role in).
+
+
+      I think this should maybe belong somewhere else. Either as its own proto function
+      to be called, or as a cleanup/finalize step automatically run when we''re done
+      with the proto functions.'
+    path: nova-e2e/tests/fixtures/nova/protos/templateProto.ts
+    created_at: '2026-03-27T00:13:40Z'
+  replies:
+  - id: 2998574748
+    author: ctotheameron
+    body: 'I''ll add a comment saying we should migrate the org entity seeder etc '
+    created_at: '2026-03-27T01:54:48Z'
+  pr_author: ctotheameron
+  merged_at: '2026-03-27T03:15:40Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2998597615
+  pr: 7452
+  root:
+    id: 2998597615
+    author: ctotheameron
+    body: I hate this feature flag - any idea when we plan to kill it?
+    path: app/src/components/views/Directory/Investor/index.tsx
+    created_at: '2026-03-27T02:05:10Z'
+  replies:
+  - id: 3002233502
+    author: ahlec
+    body: "No clue here. I don't think I expect it'll be gone any time soon though\
+      \ :(\r\n\r\nThe name is confusing and also makes it look like a React hook,\
+      \ I think renaming the feature flag would be enough of an improvement for me."
+    created_at: '2026-03-27T17:19:10Z'
+  pr_author: ahlec
+  merged_at: '2026-03-27T18:03:40Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 2998979199
+  pr: 7449
+  root:
+    id: 2998979199
+    author: ywplee-al
+    body: saw same behavior on the add entity side, applying the same fix
+    path: app/src/components/views/Directory/shared/AddEntity/index.tsx
+    created_at: '2026-03-27T05:06:17Z'
+  replies: []
+  pr_author: ywplee-al
+  merged_at: '2026-03-27T16:47:31Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 3002253563
+  pr: 7454
+  root:
+    id: 3002253563
+    author: ywplee-al
+    body: 'https://github.com/remarkjs/react-markdown?tab=readme-ov-file#security
+
+
+      > Use of react-markdown is secure by default. Overwriting urlTransform to something
+      insecure will open you up to XSS vectors. Furthermore, the remarkPlugins, rehypePlugins,
+      and components you use may be insecure. To make sure the  content is completely
+      safe, even after what plugins do, use rehype-sanitize.'
+    path: app/src/components/core/markdown/StyledMarkdown.tsx
+    created_at: '2026-03-27T17:23:42Z'
+  replies: []
+  pr_author: ywplee-al
+  merged_at: '2026-03-27T19:00:21Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 3002333610
+  pr: 7417
+  root:
+    id: 3002333610
+    author: edwinzhng
+    body: Can we add this to core/paths instead?
+    path: app/src/components/views/EntityFinancialAccounts/EntityFinancialAccount/usePageActions.ts
+    created_at: '2026-03-27T17:40:36Z'
+  replies: []
+  pr_author: kwliang1
+  merged_at: '2026-03-27T23:28:56Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 3002339508
+  pr: 7417
+  root:
+    id: 3002339508
+    author: edwinzhng
+    body: 'Not sure I love adding this to the menu, feels like the wrong place in
+      the UI and hard to find, could we move to a fixed link in the top right maybe
+      like we have for data rooms etc.
+
+
+      <img width="1256" height="309" alt="Image" src="https://github.com/user-attachments/assets/37406e0d-5f11-4d58-8e4e-102992ebb618"
+      />'
+    path: app/src/components/views/EntityFinancialAccounts/EntityFinancialAccount/usePageActions.ts
+    created_at: '2026-03-27T17:41:51Z'
+  replies: []
+  pr_author: kwliang1
+  merged_at: '2026-03-27T23:28:56Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 3002611071
+  pr: 7421
+  root:
+    id: 3002611071
+    author: ywplee-al
+    body: no need to do this anymore
+    path: app/src/components/meridian/shared/WelcomeModal/WelcomeModal.test.tsx
+    created_at: '2026-03-27T18:40:57Z'
+  replies: []
+  pr_author: ywplee-al
+  merged_at: '2026-03-27T18:57:02Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 3002613195
+  pr: 7454
+  root:
+    id: 3002613195
+    author: edwinzhng
+    body: should test sanitization too for security purposes
+    path: app/src/components/core/markdown/StyledMarkdown.test.tsx
+    created_at: '2026-03-27T18:41:25Z'
+  replies:
+  - id: 3002617113
+    author: ywplee-al
+    body: good catch, adding
+    created_at: '2026-03-27T18:42:20Z'
+  pr_author: ywplee-al
+  merged_at: '2026-03-27T19:00:21Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 3002833617
+  pr: 7461
+  root:
+    id: 3002833617
+    author: michael-breedlove
+    body: 'Use this instead: https://assets.angellist.com/images/yc_logo.png'
+    path: graph/src/lib/email/realTemplateRegistry.tsx
+    created_at: '2026-03-27T19:33:46Z'
+  replies:
+  - id: 3002846507
+    author: devin-ai-integration[bot]
+    body: Done — updated to `https://assets.angellist.com/images/yc_logo.png` in 42c94fd.
+    created_at: '2026-03-27T19:37:37Z'
+  pr_author: app/devin-ai-integration
+  merged_at: '2026-03-27T20:08:17Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 3002862506
+  pr: 7460
+  root:
+    id: 3002862506
+    author: cameronnapoli
+    body: 'Nit: `promiseUtils.map` is cleaner'
+    path: graph/engbot/backfillEmptyOrgNames.ts
+    created_at: '2026-03-27T19:41:37Z'
+  replies: []
+  pr_author: ywplee-al
+  merged_at: '2026-03-27T21:54:46Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 3002901329
+  pr: 7418
+  root:
+    id: 3002901329
+    author: michael-breedlove
+    body: '@cameronnapoli @ywplee-al Here''s the new code that uses the batch endpoint'
+    path: capital-api/lib/opportunity/match/search/searchFromOpportunity.ts
+    created_at: '2026-03-27T19:51:49Z'
+  replies: []
+  pr_author: michael-breedlove
+  merged_at: '2026-03-27T23:48:09Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 3003002764
+  pr: 7418
+  root:
+    id: 3003002764
+    author: michael-breedlove
+    body: '@cameronnapoli Do you think 500 is high enough of a limit here?'
+    path: graph/src/routers/internal/organization/index.ts
+    created_at: '2026-03-27T20:15:26Z'
+  replies:
+  - id: 3003016247
+    author: cameronnapoli
+    body: There are currently thousands of LP orgs, so don't think so
+    created_at: '2026-03-27T20:18:44Z'
+  - id: 3003081028
+    author: michael-breedlove
+    body: '@cameronnapoli do you think we should remove the max or bump to something
+      huge like 10k?'
+    created_at: '2026-03-27T20:36:01Z'
+  - id: 3003631031
+    author: michael-breedlove
+    body: Removed the max entirely.
+    created_at: '2026-03-27T23:15:05Z'
+  pr_author: michael-breedlove
+  merged_at: '2026-03-27T23:48:09Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 3003009658
+  pr: 7418
+  root:
+    id: 3003009658
+    author: michael-breedlove
+    body: 'Returning just what we need for the matchmaking updates instead of all
+      the org data. '
+    path: graph/src/routers/internal/organization/index.ts
+    created_at: '2026-03-27T20:17:05Z'
+  replies: []
+  pr_author: michael-breedlove
+  merged_at: '2026-03-27T23:48:09Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 3003543102
+  pr: 7457
+  root:
+    id: 3003543102
+    author: michael-breedlove
+    body: is the caller providing watchListUrl? We're accepting and rendering it,
+      but is the caller passing it?
+    path: graph/src/routers/internal/meridian/lp/sendLpEmail.ts
+    created_at: '2026-03-27T22:37:53Z'
+  replies:
+  - id: 3003543690
+    author: devin-ai-integration[bot]
+    body: 'Yes — the companion Venture PR https://github.com/angellist/venture/pull/27236
+      adds `watchlist_url` to the payload sent to Nova. It constructs it from the
+      user''s Venture handle: `"#{base_url}/v/#{handle}/user/settings/emails#watchlist"`.'
+    created_at: '2026-03-27T22:38:10Z'
+  pr_author: app/devin-ai-integration
+  merged_at: '2026-03-28T00:23:41Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 3003642382
+  pr: 7417
+  root:
+    id: 3003642382
+    author: edwinzhng
+    body: Do we nee d to show the ID here? Maybe just first four chars?
+    path: app/src/components/views/EntityFinancialAccounts/EntityFinancialAccount/TreasuryCustomerAccountAdminLinks.tsx
+    created_at: '2026-03-27T23:20:30Z'
+  replies:
+  - id: 3004158039
+    author: kwliang1
+    body: oh crap.   Auto merge was on. I truncated this, but it's not in the header.   Doing
+      that in a followup this weekend
+    created_at: '2026-03-28T04:32:22Z'
+  pr_author: kwliang1
+  merged_at: '2026-03-27T23:28:56Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 3007720373
+  pr: 7471
+  root:
+    id: 3007720373
+    author: ctotheameron
+    body: annoying that this isn't a pg enum smh
+    path: graph/src/lib/organization/entity/create.ts
+    created_at: '2026-03-30T06:02:07Z'
+  replies:
+  - id: 3007807628
+    author: kevinmmarlow
+    body: It can't be. entity types can be anything. Also, this doesn't actually fix
+      it properly after some digging. We are also setting "Limited Liability Company",
+      etc instead of "llc". Diagnosing the root cause here and will push that.
+    created_at: '2026-03-30T06:29:05Z'
+  pr_author: kevinmmarlow
+  merged_at: '2026-03-31T09:24:01Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 3011321039
+  pr: 7445
+  root:
+    id: 3011321039
+    author: edwinzhng
+    body: 'nit: We have an EMDASH const we typically use everywhere'
+    path: app/src/components/views/Directory/Entities/Uploads/BulkFileUploadModal/Steps/Review/FilesTable/helpers.tsx
+    created_at: '2026-03-30T17:52:01Z'
+  replies: []
+  pr_author: ywplee-al
+  merged_at: '2026-03-30T19:18:46Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 3013152910
+  pr: 7477
+  root:
+    id: 3013152910
+    author: cbzehner
+    body: 'Suggestion: Could we log a Sentry error here when we return? In theory
+      this case should never occur, but in practice it might have(?). It''s worth
+      trying to gather more data about if this ever happens in practice so that we
+      can refine our posture around this.'
+    path: app/lib/authz/applyNovaPlatformBrand.ts
+    created_at: '2026-03-31T02:45:07Z'
+  replies: []
+  pr_author: edwinzhng
+  merged_at: '2026-03-31T04:58:16Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 3013310864
+  pr: 7477
+  root:
+    id: 3013310864
+    author: ctotheameron
+    body: This shouldn't be an error
+    path: app/lib/authz/applyNovaPlatformBrand.ts
+    created_at: '2026-03-31T03:39:15Z'
+  replies: []
+  pr_author: edwinzhng
+  merged_at: '2026-03-31T04:58:16Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 3013393304
+  pr: 7477
+  root:
+    id: 3013393304
+    author: ctotheameron
+    body: We should just do all this work on the backend. The mutation called by `maybeApplyNovaPlatformBrand`
+      can own checking the org type
+    path: app/src/pages/r/[recipientOrgHandle]/s/[senderOrgHandle]/wallet.tsx
+    created_at: '2026-03-31T04:12:40Z'
+  replies:
+  - id: 3013457127
+    author: edwinzhng
+    body: Thanks good call, I moved it
+    created_at: '2026-03-31T04:38:31Z'
+  pr_author: edwinzhng
+  merged_at: '2026-03-31T04:58:16Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 3013437317
+  pr: 7480
+  root:
+    id: 3013437317
+    author: ctotheameron
+    body: 'Note: It''s kinda cursed that we''re doing it this way, especially in the
+      post-DRC world...
+
+
+      cc: @JaredWF '
+    path: graph/src/internal/schema/dataroom/member/acceptInvite.ts
+    created_at: '2026-03-31T04:30:27Z'
+  replies:
+  - id: 3013439506
+    author: ctotheameron
+    body: or maybe i'm misunderstanding what the `token` does here actually. Does
+      this imply multiple invite records sharing a single token?
+    created_at: '2026-03-31T04:31:20Z'
+  - id: 3013455002
+    author: cameronnapoli
+    body: Token should be unique to a data room member. Good Q though, `acceptAllUnacceptedDataRoomInvitesByToken`
+      should probably be updated.
+    created_at: '2026-03-31T04:37:41Z'
+  pr_author: cameronnapoli
+  merged_at: '2026-03-31T05:21:40Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 3013442079
+  pr: 7480
+  root:
+    id: 3013442079
+    author: ctotheameron
+    body: '@cameronnapoli can you follow-up here to investigate how this might be
+      the case? Seems like we''re now making it an invalid state, but we clearly have
+      been allowing it previously'
+    path: graph/src/internal/schema/dataroom/member/acceptInvite.ts
+    created_at: '2026-03-31T04:32:22Z'
+  replies:
+  - id: 3013446835
+    author: cameronnapoli
+    body: I don't think we've ever actually hit before - I just added it to exercise
+      an abundance of caution
+    created_at: '2026-03-31T04:34:24Z'
+  - id: 3013459109
+    author: ctotheameron
+    body: "Is it just because member is nullable, or is `inviteEmail` actually not\
+      \ a required field?\r\n"
+    created_at: '2026-03-31T04:39:18Z'
+  - id: 3013460541
+    author: ctotheameron
+    body: "```\r\n  inviteEmail               String?             @map(\"invite_email\"\
+      )\r\n```\r\n\r\nI wonder if we can TODO to make this required"
+    created_at: '2026-03-31T04:39:56Z'
+  - id: 3013475602
+    author: cameronnapoli
+    body: '`inviteEmail` should be null if the member is created via an access link,
+      so this is a valid state.'
+    created_at: '2026-03-31T04:46:15Z'
+  pr_author: cameronnapoli
+  merged_at: '2026-03-31T05:21:40Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 3013453785
+  pr: 7480
+  root:
+    id: 3013453785
+    author: ctotheameron
+    body: I think we should just throw a regular error here and catch and re-throw
+      as the gql error in the mutation above
+    path: graph/src/internal/schema/dataroom/member/acceptInvite.ts
+    created_at: '2026-03-31T04:37:17Z'
+  replies:
+  - id: 3013455517
+    author: ctotheameron
+    body: "Also i think we should reusue the:\n\n`'This invite was already redeemed\
+      \ by somebody else. Please request a new invite to access this Data Room.'`\
+      \ \n\nerror message"
+    created_at: '2026-03-31T04:37:53Z'
+  - id: 3013488043
+    author: cameronnapoli
+    body: '> I think we should just throw a regular error here and catch and re-throw
+      as the gql error in the mutation above
+
+
+      Curious as to what your thought process is there?'
+    created_at: '2026-03-31T04:51:19Z'
+  pr_author: cameronnapoli
+  merged_at: '2026-03-31T05:21:40Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 3017695814
+  pr: 7455
+  root:
+    id: 3017695814
+    author: ahlec
+    body: <img width="225" height="225" alt="Image" src="https://github.com/user-attachments/assets/67954704-1290-410d-9043-a95a3fe75d24"
+      />
+    path: nova-e2e/tests/pages/transactions/transactionSenderOverviewPage/tabs/entityDetails.ts
+    created_at: '2026-03-31T18:46:53Z'
+  replies: []
+  pr_author: ctotheameron
+  merged_at: '2026-03-31T18:49:07Z'
+  repo: nova
+  has_suggestion_block: false
+- thread_id: 3018289077
+  pr: 7489
+  root:
+    id: 3018289077
+    author: ywplee-al
+    body: should we check if new value is different from the old value?
+    path: app/src/components/meridian/shared/OpportunityManager/AverageCheckSize.tsx
+    created_at: '2026-03-31T20:40:56Z'
+  replies:
+  - id: 3018358874
+    author: michael-breedlove
+    body: We do indirectly via `.includes` on the old value. If the old value is a
+      valid option in the new validValues, we don't overwrite it.
+    created_at: '2026-03-31T20:55:42Z'
+  pr_author: michael-breedlove
+  merged_at: '2026-03-31T22:43:11Z'
   repo: nova
   has_suggestion_block: false

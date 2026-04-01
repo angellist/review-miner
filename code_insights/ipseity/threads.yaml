@@ -1,0 +1,2934 @@
+metadata:
+  last_refresh: '2026-03-31T15:59:52.125070'
+  fetched_ranges:
+  - since: '2025-01-01'
+    until: '2026-03-31'
+    fetched_at: '2026-03-31T15:59:52.125050'
+  pr_count: 69
+  thread_count: 161
+threads:
+- thread_id: 1899166252
+  pr: 1073
+  root:
+    id: 1899166252
+    author: stathis-alexander
+    body: Kind of hilarious, but gem caching in the volume is not working at all.
+      I think there's a better way to do this so that the local and docker gems are
+      shared via the volume, but idk
+    path: docker-compose.yml
+    created_at: '2024-12-29T17:16:07Z'
+  replies: []
+  pr_author: stathis-alexander
+  merged_at: '2025-01-06T14:29:59Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 1951451052
+  pr: 1087
+  root:
+    id: 1951451052
+    author: harsohailB
+    body: I am not sure if this is testing the correct thing. This is changing the
+      kyc aml status on the trust not the control person.
+    path: test/services/entities/verification_service_test.rb
+    created_at: '2025-02-11T19:13:09Z'
+  replies:
+  - id: 1951569188
+    author: gabehesse
+    body: shoot, right you are! Fixed!
+    created_at: '2025-02-11T20:38:38Z'
+  pr_author: gabehesse
+  merged_at: '2025-02-11T22:54:21Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 1955563584
+  pr: 1088
+  root:
+    id: 1955563584
+    author: campriceaustin
+    body: the var name reads like it's meant to be a bool - what do the values here
+      look like?
+    path: db/migrate/20250213033454_add_is_cfius_foreign_entity_to_company_investor_role.rb
+    created_at: '2025-02-14T05:06:02Z'
+  replies:
+  - id: 1955729594
+    author: kevinmmarlow
+    body: Fixed!
+    created_at: '2025-02-14T08:22:15Z'
+  pr_author: kevinmmarlow
+  merged_at: '2025-02-14T09:01:07Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 1974017762
+  pr: 1092
+  root:
+    id: 1974017762
+    author: zchr
+    body: Nit, consider `allow_tax_form_type_update!` since it's a bit destructive
+    path: app/controllers/api/tax_forms/files_controller.rb
+    created_at: '2025-02-27T17:14:08Z'
+  replies: []
+  pr_author: joshg47
+  merged_at: '2025-02-27T17:48:53Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2059309479
+  pr: 1097
+  root:
+    id: 2059309479
+    author: stathis-alexander
+    body: 'Is this possible still? I would assume each field comes from a different
+      address component. '
+    path: app/controllers/api/addresses_controller.rb
+    created_at: '2025-04-24T22:09:17Z'
+  replies:
+  - id: 2059312257
+    author: FoodProduct
+    body: Good question -- it's _probably_ not possible, but I am not 100% sure so
+      I erred on the side of caution and decided to leave this logic in.
+    created_at: '2025-04-24T22:12:47Z'
+  pr_author: FoodProduct
+  merged_at: '2025-04-24T22:15:17Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2060765102
+  pr: 1098
+  root:
+    id: 2060765102
+    author: FoodProduct
+    body: "When running the spec, this runtime Sorbet error spam occurs:\r\n```\r\n\
+      Sorbet error: Parameter 'geocoding_api_result': Expected type {address_components:\
+      \ [{long_name: String, short_name: String, types: [String]}], formatted_address:\
+      \ String, geometry: T.untyped, navigation_points: T.untyped, place_id: String,\
+      \ types: [String]}, got type {\"address_components\" => Array, \"geometry\"\
+      \ => Hash, \"place_id\" => String, \"types\" => Array, \"navigation_points\"\
+      \ => Array}\r\nCaller: /app/app/services/formatted_addresses/parse_service.rb:31\r\
+      \nDefinition: /app/app/services/formatted_addresses/parse_service.rb:35 (FormattedAddresses::ParseService.country_and_geocoding_api_response_to_mailing_address)\r\
+      \n```\r\nbut the tests all pass. I'm fairly sure that my code impl is correct\
+      \ (I'm basing the accessor pattern off of existing code that uses the same Google\
+      \ Maps API integration code) but I couldn't figure out how to get rid of this\
+      \ error without breaking the actual runtime functionality. Any help here would\
+      \ be appreciated \U0001F64F "
+    path: spec/services/formatted_addresses/parse_service_spec.rb
+    created_at: '2025-04-25T19:13:57Z'
+  replies:
+  - id: 2060868696
+    author: FoodProduct
+    body: 'Probably not worth tracking down due to https://github.com/angellist/ipseity/pull/1101
+      🙂 '
+    created_at: '2025-04-25T20:50:47Z'
+  pr_author: FoodProduct
+  merged_at: '2025-04-28T18:39:22Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2060804642
+  pr: 1099
+  root:
+    id: 2060804642
+    author: stathis-alexander
+    body: I assume based on the changes that you're just brining this in line with
+      the other method. Is there some way we could DRY the two?
+    path: app/services/formatted_addresses/create_service.rb
+    created_at: '2025-04-25T19:49:37Z'
+  replies:
+  - id: 2060805355
+    author: FoodProduct
+    body: Probably, but I plan on deprecating them both soon so I don't think it's
+      worth spending much more time on.
+    created_at: '2025-04-25T19:50:18Z'
+  pr_author: FoodProduct
+  merged_at: '2025-04-25T19:55:15Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2062674172
+  pr: 1102
+  root:
+    id: 2062674172
+    author: bgoutham
+    body: "minor stylistic, consider unless for better readability?\r\n\r\n`  next\
+      \ unless address_component['types'].include?(field)`"
+    path: app/services/formatted_addresses/create_service.rb
+    created_at: '2025-04-27T16:43:08Z'
+  replies:
+  - id: 2063674546
+    author: FoodProduct
+    body: We have a Rubocop rule enforcing the opposite.
+    created_at: '2025-04-28T13:35:22Z'
+  - id: 2063680971
+    author: bgoutham
+    body: 'interesting, must be stylistic across our code base. Do you know why such
+      a rule exists? '
+    created_at: '2025-04-28T13:39:00Z'
+  - id: 2063768722
+    author: FoodProduct
+    body: I think it's safe to assume that it's primarily for consistency and secondarily
+      for readability (albeit with a differing opinion on what is more "readable").
+      I happen to agree with the readability decision, though I don't feel strongly
+      about it.
+    created_at: '2025-04-28T14:19:53Z'
+  pr_author: FoodProduct
+  merged_at: '2025-04-27T16:43:16Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2064220380
+  pr: 1098
+  root:
+    id: 2064220380
+    author: stathis-alexander
+    body: "```suggestion\r\n# 0.27.6\r\n```"
+    path: entity_api/CHANGELOG.md
+    created_at: '2025-04-28T18:05:47Z'
+  replies: []
+  pr_author: FoodProduct
+  merged_at: '2025-04-28T18:39:22Z'
+  repo: ipseity
+  has_suggestion_block: true
+- thread_id: 2064226515
+  pr: 1098
+  root:
+    id: 2064226515
+    author: stathis-alexander
+    body: Do we actually need the objects here? Could we make the procs directly the
+      value of the country code keys?
+    path: app/services/formatted_addresses/parse_service.rb
+    created_at: '2025-04-28T18:08:26Z'
+  replies:
+  - id: 2064258225
+    author: FoodProduct
+    body: I normally omit unnecessary levels of abstraction, but I found it useful
+      to have some other properties around formatting/displaying in the FE that I'm
+      pretty sure we'll want here in the future so am just saving the diff for now.
+    created_at: '2025-04-28T18:27:40Z'
+  pr_author: FoodProduct
+  merged_at: '2025-04-28T18:39:22Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2064232277
+  pr: 1098
+  root:
+    id: 2064232277
+    author: stathis-alexander
+    body: "Let's pull out `geocoding_api_response.first` as a variable and give it\
+      \ a comment around what we're doing. Hopefully we can avoid someone doing something\
+      \ stupid in the future. \r\n\r\n```suggestion\r\n# The api will return the best\
+      \ match as the first result, so we want to always use that one. \r\nfirst_result\
+      \ = geocoding_api_response.first!\r\nFormattedAddresses::ParseService.geocoding_api_response_to_mailing_address(first_result)\r\
+      \n```"
+    path: app/controllers/api/addresses_controller.rb
+    created_at: '2025-04-28T18:11:14Z'
+  replies:
+  - id: 2064255937
+    author: FoodProduct
+    body: We need to handle when the response returns 0 results but happy to add the
+      explanatory comment
+    created_at: '2025-04-28T18:26:00Z'
+  pr_author: FoodProduct
+  merged_at: '2025-04-28T18:39:22Z'
+  repo: ipseity
+  has_suggestion_block: true
+- thread_id: 2067085215
+  pr: 1104
+  root:
+    id: 2067085215
+    author: FoodProduct
+    body: Technically the `found` field is redundant as consumers can do the same
+      check on their end. LMK if anyone would prefer that I remove it -- I have pretty
+      low conviction that it's useful.
+    path: app/controllers/api/addresses_controller.rb
+    created_at: '2025-04-29T18:11:46Z'
+  replies:
+  - id: 2067120714
+    author: stathis-alexander
+    body: 'Yeah I think I''d prefer we just return `nil` and not return an additional
+      flag indicating the same thing, but I don''t think it''s a huge deal either
+      way. '
+    created_at: '2025-04-29T18:30:59Z'
+  - id: 2067129876
+    author: FoodProduct
+    body: Alright I'll ax the flag -- easier to add than remove
+    created_at: '2025-04-29T18:37:38Z'
+  pr_author: FoodProduct
+  merged_at: '2025-04-29T19:01:17Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2067106368
+  pr: 1104
+  root:
+    id: 2067106368
+    author: FoodProduct
+    body: Is there a reason we don't use this `optional ` syntax anywhere else (in
+      ipseity)?
+    path: entity_api/definitions/entity_api/messages/address.proto
+    created_at: '2025-04-29T18:22:16Z'
+  replies:
+  - id: 2067121949
+    author: stathis-alexander
+    body: 'Not sure, honestly. No one is really that knowledgeable about proto, we
+      just copy paste it a ton. '
+    created_at: '2025-04-29T18:31:46Z'
+  pr_author: FoodProduct
+  merged_at: '2025-04-29T19:01:17Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2067121406
+  pr: 1104
+  root:
+    id: 2067121406
+    author: stathis-alexander
+    body: 'Should have caught this during review. Been a while since I''ve updated
+      these. So much boilerplate to add a simple thing. '
+    path: config/routes.rb
+    created_at: '2025-04-29T18:31:22Z'
+  replies: []
+  pr_author: FoodProduct
+  merged_at: '2025-04-29T19:01:17Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2067132619
+  pr: 1104
+  root:
+    id: 2067132619
+    author: FoodProduct
+    body: 'I guess I was supposed to update this last time too and missed it 🤷‍♂️ '
+    path: entity_api/Gemfile.lock
+    created_at: '2025-04-29T18:39:44Z'
+  replies: []
+  pr_author: FoodProduct
+  merged_at: '2025-04-29T19:01:17Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2079833770
+  pr: 1109
+  root:
+    id: 2079833770
+    author: stathis-alexander
+    body: "```suggestion\r\n      return if mailing_address[:city].blank?\r\n```"
+    path: app/services/formatted_addresses/parse_service.rb
+    created_at: '2025-05-08T14:27:06Z'
+  replies: []
+  pr_author: FoodProduct
+  merged_at: '2025-05-08T14:40:41Z'
+  repo: ipseity
+  has_suggestion_block: true
+- thread_id: 2079834114
+  pr: 1109
+  root:
+    id: 2079834114
+    author: stathis-alexander
+    body: "```suggestion\r\n      mailing_address[:city] = admin_level_1 if mailing_address[:city].blank?\
+      \ && admin_level_1.present?\r\n```"
+    path: app/services/formatted_addresses/parse_service.rb
+    created_at: '2025-05-08T14:27:17Z'
+  replies: []
+  pr_author: FoodProduct
+  merged_at: '2025-05-08T14:40:41Z'
+  repo: ipseity
+  has_suggestion_block: true
+- thread_id: 2079834512
+  pr: 1109
+  root:
+    id: 2079834512
+    author: stathis-alexander
+    body: what does `admin_level_1` mean?
+    path: app/services/formatted_addresses/parse_service.rb
+    created_at: '2025-05-08T14:27:31Z'
+  replies:
+  - id: 2079842730
+    author: FoodProduct
+    body: Renamed and added a code comment -- LMK what you think
+    created_at: '2025-05-08T14:32:05Z'
+  pr_author: FoodProduct
+  merged_at: '2025-05-08T14:40:41Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2080752603
+  pr: 1110
+  root:
+    id: 2080752603
+    author: campriceaustin
+    body: you can have a street address but no city?
+    path: app/services/formatted_addresses/parse_service.rb
+    created_at: '2025-05-09T01:52:40Z'
+  replies:
+  - id: 2080764135
+    author: FoodProduct
+    body: '🤔 this is an "or" so no unless I''m missing something 😓 '
+    created_at: '2025-05-09T02:09:09Z'
+  - id: 2080765803
+    author: campriceaustin
+    body: 'misread, ignore me :) '
+    created_at: '2025-05-09T02:11:35Z'
+  pr_author: FoodProduct
+  merged_at: '2025-05-09T01:55:07Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2080753803
+  pr: 1110
+  root:
+    id: 2080753803
+    author: campriceaustin
+    body: 'nit: is this meant to be here?'
+    path: app/services/formatted_addresses/parse_service.rb
+    created_at: '2025-05-09T01:54:32Z'
+  replies:
+  - id: 2080764400
+    author: FoodProduct
+    body: Oops looks like auto-format got weird. Good catch!
+    created_at: '2025-05-09T02:09:27Z'
+  pr_author: FoodProduct
+  merged_at: '2025-05-09T01:55:07Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2110276575
+  pr: 1120
+  root:
+    id: 2110276575
+    author: harsohailB
+    body: If we go from `pending_documents` to `approved`, we shouldn't notify right?
+      That will reduce at least some noise
+    path: app/models/alloy/journey/entity_application.rb
+    created_at: '2025-05-27T21:12:52Z'
+  replies:
+  - id: 2110279670
+    author: kwliang1
+    body: https://github.com/angellist/ipseity/pull/1120/commits/bff6e1a7089cdb3945594df3b43fb56dd0eba92d
+    created_at: '2025-05-27T21:14:35Z'
+  pr_author: kwliang1
+  merged_at: '2025-05-27T21:24:32Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2127488407
+  pr: 1125
+  root:
+    id: 2127488407
+    author: thibaut-pro
+    body: Can you implement these TODOs?
+    path: spec/models/entity_spec.rb
+    created_at: '2025-06-04T21:43:06Z'
+  replies: []
+  pr_author: app/devin-ai-integration
+  merged_at: '2025-06-13T15:54:02Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2141033544
+  pr: 1125
+  root:
+    id: 2141033544
+    author: korbin
+    body: You shouldn't need to file.open these
+    path: spec/models/encrypted_file_spec.rb
+    created_at: '2025-06-11T20:44:26Z'
+  replies:
+  - id: 2141763476
+    author: thibaut-pro
+    body: 'aside: good point. Asked devin to update that.'
+    created_at: '2025-06-12T05:45:42Z'
+  pr_author: app/devin-ai-integration
+  merged_at: '2025-06-13T15:54:02Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2145431166
+  pr: 1126
+  root:
+    id: 2145431166
+    author: thibaut-pro
+    body: You should carry these comments over
+    path: test/models/roles/signatory_test.rb
+    created_at: '2025-06-13T16:06:01Z'
+  replies: []
+  pr_author: app/devin-ai-integration
+  merged_at: '2025-06-16T23:41:43Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2155013185
+  pr: 1128
+  root:
+    id: 2155013185
+    author: thibaut-pro
+    body: Can you instead create a verified trait on the kyc_aml_statuses_united_states_person
+      factory?
+    path: spec/models/kyc_aml_statuses/united_states/person_spec.rb
+    created_at: '2025-06-18T16:12:46Z'
+  replies: []
+  pr_author: app/devin-ai-integration
+  merged_at: '2025-06-19T17:53:56Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2155043557
+  pr: 1128
+  root:
+    id: 2155043557
+    author: thibaut-pro
+    body: "aside\r\n```suggestion\r\n```"
+    path: app/models/concerns/kyc_aml_status/identity_concern.rb
+    created_at: '2025-06-18T16:28:23Z'
+  replies: []
+  pr_author: app/devin-ai-integration
+  merged_at: '2025-06-19T17:53:56Z'
+  repo: ipseity
+  has_suggestion_block: true
+- thread_id: 2155044018
+  pr: 1128
+  root:
+    id: 2155044018
+    author: thibaut-pro
+    body: "aside: I don't think this is needed\r\n```suggestion\r\n```"
+    path: app/models/concerns/kyc_aml_status/watchlist_concern.rb
+    created_at: '2025-06-18T16:28:41Z'
+  replies: []
+  pr_author: app/devin-ai-integration
+  merged_at: '2025-06-19T17:53:56Z'
+  repo: ipseity
+  has_suggestion_block: true
+- thread_id: 2201225331
+  pr: 1137
+  root:
+    id: 2201225331
+    author: bob-hg
+    body: CI is complaining about this `expect` being a block. Could also check that
+      a non-pfic/cfc that is the US can still be saved, just to hit most of the logic
+      chart.
+    path: spec/models/identity_data/company_spec.rb
+    created_at: '2025-07-11T16:32:43Z'
+  replies: []
+  pr_author: zchr
+  merged_at: '2025-07-15T14:55:02Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2205996930
+  pr: 1140
+  root:
+    id: 2205996930
+    author: stathis-alexander
+    body: Fixes some warnings and applies rubocop.
+    path: app/models/integrations/persona/reports/pep_response.rb
+    created_at: '2025-07-14T23:42:11Z'
+  replies: []
+  pr_author: stathis-alexander
+  merged_at: '2025-07-15T00:37:10Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2205996967
+  pr: 1140
+  root:
+    id: 2205996967
+    author: stathis-alexander
+    body: Fixes some warnings and applies rubocop.
+    path: app/models/integrations/persona/reports/watchlist_response.rb
+    created_at: '2025-07-14T23:42:14Z'
+  replies: []
+  pr_author: stathis-alexander
+  merged_at: '2025-07-15T00:37:10Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2206067219
+  pr: 1142
+  root:
+    id: 2206067219
+    author: stathis-alexander
+    body: unused
+    path: .env
+    created_at: '2025-07-15T00:53:44Z'
+  replies: []
+  pr_author: stathis-alexander
+  merged_at: '2025-07-22T21:11:45Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2206067435
+  pr: 1142
+  root:
+    id: 2206067435
+    author: stathis-alexander
+    body: We don't want the default credntial chain to pick these up b/c they don't
+      work, so rename to make specific to s3.
+    path: .env
+    created_at: '2025-07-15T00:54:03Z'
+  replies: []
+  pr_author: stathis-alexander
+  merged_at: '2025-07-22T21:11:45Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2206068210
+  pr: 1142
+  root:
+    id: 2206068210
+    author: stathis-alexander
+    body: "This is in the deps of `document_client`, but I think the `require` is\
+      \ important here, otherwise I get \r\n```\r\nFaraday::Error: :aws_sigv4 is not\
+      \ registered on Faraday::Request\r\n```\r\n\r\nif there's a way to setup `DocumentClient`\
+      \ so this happens automatically, let me know (maybe add a `require('')` in the\
+      \ code there?)"
+    path: Gemfile
+    created_at: '2025-07-15T00:55:00Z'
+  replies:
+  - id: 2206086387
+    author: clogan1
+    body: yes that you have to require it. Not sure if there's a way we can handle
+      it in the `DocumentClient` directly, but that would be best.
+    created_at: '2025-07-15T01:16:42Z'
+  - id: 2220573650
+    author: stathis-alexander
+    body: Addressed in https://github.com/angellist/document_client/pull/67
+    created_at: '2025-07-21T23:32:56Z'
+  pr_author: stathis-alexander
+  merged_at: '2025-07-22T21:11:45Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2206208163
+  pr: 1142
+  root:
+    id: 2206208163
+    author: korbin
+    body: this is supposed to be comma separated
+    path: config/environments/development.rb
+    created_at: '2025-07-15T03:33:03Z'
+  replies: []
+  pr_author: stathis-alexander
+  merged_at: '2025-07-22T21:11:45Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2208008289
+  pr: 1143
+  root:
+    id: 2208008289
+    author: fivetentaylor
+    body: lol, nice!
+    path: test/controllers/api/identity_data/companies_controller_test.rb
+    created_at: '2025-07-15T16:42:12Z'
+  replies: []
+  pr_author: harsohailB
+  merged_at: '2025-07-15T16:54:29Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2252597432
+  pr: 1160
+  root:
+    id: 2252597432
+    author: stathis-alexander
+    body: 'How expensive are these forks to maintain? '
+    path: Gemfile
+    created_at: '2025-08-04T21:17:36Z'
+  replies:
+  - id: 2252610791
+    author: korbin
+    body: "it's basically this oneliner, i am guessing it wont be necessary in the\
+      \ long term:\r\n\r\nhttps://github.com/angellist/zstd-ruby/commit/989d8f2f210e8f3a8c7ea02bf1b57d7d9e8075d2"
+    created_at: '2025-08-04T21:26:01Z'
+  pr_author: korbin
+  merged_at: '2025-08-06T16:32:37Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2254538378
+  pr: 1161
+  root:
+    id: 2254538378
+    author: kwliang1
+    body: This is the new change since the last PR
+    path: app/models/alloy/journey/entity_application.rb
+    created_at: '2025-08-05T14:29:06Z'
+  replies: []
+  pr_author: kwliang1
+  merged_at: '2025-08-05T15:13:00Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2258449969
+  pr: 1162
+  root:
+    id: 2258449969
+    author: kwliang1
+    body: "I don't actually plan on using all of this functionality. Largely based\
+      \ on [this](https://github.com/angellist/treasury/blob/6390b2fd4625655c01ba863ecf4d35b5019c18ce/lib/flowdash/client_instance.rb#L4).\
+      \ \r\n\r\nJust using:\r\n\r\n- `get_flowdash_tasks_with_filters`\r\n- `task_url`"
+    path: lib/flowdash/client_instance.rb
+    created_at: '2025-08-06T22:32:21Z'
+  replies: []
+  pr_author: kwliang1
+  merged_at: '2025-08-08T01:57:43Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2258458590
+  pr: 1162
+  root:
+    id: 2258458590
+    author: kwliang1
+    body: sorbet didn't like this, it was `CGI.encodeURIComponent`
+    path: lib/flowdash/client_instance.rb
+    created_at: '2025-08-06T22:40:05Z'
+  replies: []
+  pr_author: kwliang1
+  merged_at: '2025-08-08T01:57:43Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2261296292
+  pr: 1164
+  root:
+    id: 2261296292
+    author: stathis-alexander
+    body: 'why pin `pg`? ideally we can at least pessimistic to `~> 1` '
+    path: Gemfile
+    created_at: '2025-08-07T20:05:41Z'
+  replies: []
+  pr_author: korbin
+  merged_at: '2025-08-16T16:41:41Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2261671938
+  pr: 1162
+  root:
+    id: 2261671938
+    author: harsohailB
+    body: Instead of having a client and a client instance, can we just have a simple
+      `Flowdash::Client`? I think we have the multiple client setup in Treasury because
+      Gabe was trying to set something up for Piermont.
+    path: lib/flowdash/client.rb
+    created_at: '2025-08-08T00:00:31Z'
+  replies:
+  - id: 2261690306
+    author: kwliang1
+    body: https://github.com/angellist/ipseity/pull/1162/commits/bf0b53da38aa036cdb1f58efbe3a72dd5833afa6
+    created_at: '2025-08-08T00:23:52Z'
+  pr_author: kwliang1
+  merged_at: '2025-08-08T01:57:43Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2261673180
+  pr: 1166
+  root:
+    id: 2261673180
+    author: harsohailB
+    body: Just store in the constant rather than fetching from env? I know we have
+      done this in the past but I don't think its needed.
+    path: lib/flowdash/workflow/kyc_review.rb
+    created_at: '2025-08-08T00:02:10Z'
+  replies:
+  - id: 2261695926
+    author: kwliang1
+    body: it feels like a (minor) departure from a pattern from the other instances
+      where we use it.   We mix this pattern in `venture`.  I don't really see a technical
+      reason to **not** to do this.
+    created_at: '2025-08-08T00:28:45Z'
+  - id: 2261696056
+    author: kwliang1
+    body: https://github.com/angellist/ipseity/pull/1166/commits/7dab75565ae0ffdb5016c47b02cd709943635ebc
+    created_at: '2025-08-08T00:28:53Z'
+  pr_author: kwliang1
+  merged_at: '2025-08-08T16:10:48Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2261713269
+  pr: 1162
+  root:
+    id: 2261713269
+    author: harsohailB
+    body: Can we place this above under Easy HTTP requests?
+    path: Gemfile
+    created_at: '2025-08-08T00:46:33Z'
+  replies: []
+  pr_author: kwliang1
+  merged_at: '2025-08-08T01:57:43Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2261715915
+  pr: 1166
+  root:
+    id: 2261715915
+    author: harsohailB
+    body: "This can never be `nil`. Weird sorbet doesn't shout here\r\n\r\n```suggestion\r\
+      \n      return if entity_id.blank?\r\n```"
+    path: lib/flowdash/workflow/kyc_review.rb
+    created_at: '2025-08-08T00:50:05Z'
+  replies: []
+  pr_author: kwliang1
+  merged_at: '2025-08-08T16:10:48Z'
+  repo: ipseity
+  has_suggestion_block: true
+- thread_id: 2261720165
+  pr: 1166
+  root:
+    id: 2261720165
+    author: harsohailB
+    body: "hmm the API call returns `tasks` as an array so don't we need to do the\
+      \ following. and then instead of casting, can just set the return to `T.nilable(T::Hash[String,\
+      \ T.untyped]])`?\r\n\r\n```suggestion\r\n      tasks = Flowdash::Client.get_flowdash_tasks_with_filters(WORKFLOW_ID,\
+      \ filters: { 'Entity Id' => entity_id })\r\n      return if tasks.blank?\r\n\
+      \r\n      tasks.first\r\n```"
+    path: lib/flowdash/workflow/kyc_review.rb
+    created_at: '2025-08-08T00:55:20Z'
+  replies:
+  - id: 2262016574
+    author: kwliang1
+    body: https://github.com/angellist/ipseity/pull/1166/commits/f1c00866be1f845de4971f212c826f1be6ab5223
+    created_at: '2025-08-08T06:06:08Z'
+  pr_author: kwliang1
+  merged_at: '2025-08-08T16:10:48Z'
+  repo: ipseity
+  has_suggestion_block: true
+- thread_id: 2262098255
+  pr: 1167
+  root:
+    id: 2262098255
+    author: kwliang1
+    body: mostly rubocop
+    path: app/models/entity.rb
+    created_at: '2025-08-08T06:55:32Z'
+  replies: []
+  pr_author: kwliang1
+  merged_at: '2025-08-08T17:01:54Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2262098696
+  pr: 1167
+  root:
+    id: 2262098696
+    author: kwliang1
+    body: new util method
+    path: app/models/entity.rb
+    created_at: '2025-08-08T06:55:46Z'
+  replies: []
+  pr_author: kwliang1
+  merged_at: '2025-08-08T17:01:54Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2263204528
+  pr: 1166
+  root:
+    id: 2263204528
+    author: harsohailB
+    body: "```suggestion\r\n    def get_tasks_by_entity_id(entity_id)\r\n```"
+    path: lib/flowdash/workflow/kyc_review.rb
+    created_at: '2025-08-08T14:53:39Z'
+  replies: []
+  pr_author: kwliang1
+  merged_at: '2025-08-08T16:10:48Z'
+  repo: ipseity
+  has_suggestion_block: true
+- thread_id: 2263528279
+  pr: 1167
+  root:
+    id: 2263528279
+    author: harsohailB
+    body: This can be like 5 API calls. Can we traverse up the relationships and determine
+      the owner first and then just make one API call?
+    path: app/models/alloy/journey/entity_application.rb
+    created_at: '2025-08-08T16:41:12Z'
+  replies:
+  - id: 2263543008
+    author: kwliang1
+    body: I'm not sure I'm following.   Are you concerned about [this case](https://treasury.internal.angellist.com/v/customer_accounts/404653?tab=entities)?  If
+      so, we will only make one API call.   I don't see a way around a scenario where
+      the a given entity is a control person (or another role) for multiple funds
+      (`companies`)
+    created_at: '2025-08-08T16:47:34Z'
+  - id: 2263548483
+    author: harsohailB
+    body: But right now we are fetching tasks for each related entity. If a control
+      person submits an ID, we want to go find its owner and fetch that task. The
+      related entities in most cases will not have a task associated to their entity
+      ID. Maybe I am missing something tho.
+    created_at: '2025-08-08T16:50:31Z'
+  - id: 2263553471
+    author: kwliang1
+    body: "> we want to go find its owner and fetch that task.\r\n\r\nMaybe this is\
+      \ an issue of my naming the method poorly?  This is my intention [here](https://github.com/angellist/ipseity/pull/1167/files#diff-4d4a2bec358e7f76bcdb0c5a9a36f2955d5dd93306b6221cc2846cdfab4f8338R399-R406)\
+      \ I'm saying go get the FD task of the owner entity that this application's\
+      \ entity has a role in. The method should return unique (owner) entities."
+    created_at: '2025-08-08T16:53:15Z'
+  - id: 2263554635
+    author: harsohailB
+    body: For the case where a related entity can be a related entity for multiple
+      owners, we can likely fetch the owners and link to the one that was latest created_at.
+      Probably safe to assume latest one is in KYC review
+    created_at: '2025-08-08T16:53:59Z'
+  - id: 2263557498
+    author: harsohailB
+    body: "> The method should return unique (owner) entities.\r\n\r\nAh okay. Makes\
+      \ sense. Thoughts on checking for latest owner only?"
+    created_at: '2025-08-08T16:55:32Z'
+  - id: 2263560938
+    author: kwliang1
+    body: "If I have Company A and Company B both with a control person of Entity\
+      \ C, why don't we assume that **both** companies should be re-reviewed?\r\n\r\
+      \n<img width=\"586\" height=\"385\" alt=\"image\" src=\"https://github.com/user-attachments/assets/26dcb39d-f728-4660-b40d-2be732486f4a\"\
+      \ />\r\n\r\n[Slack context](https://angellist.slack.com/archives/C06SP940UDN/p1754500114116959?thread_ts=1754407756.036169&cid=C06SP940UDN)\r\
+      \n\r\nIt looks like they would want to look at the customer account \"holistically\"\
+      \ in order to review all related entities."
+    created_at: '2025-08-08T16:57:34Z'
+  - id: 2263565475
+    author: harsohailB
+    body: 'Ah I see. This is making sense. Sorry for causing any confusion. Let''s
+      ship 🚢 '
+    created_at: '2025-08-08T17:00:16Z'
+  pr_author: kwliang1
+  merged_at: '2025-08-08T17:01:54Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2263538362
+  pr: 1167
+  root:
+    id: 2263538362
+    author: fivetentaylor
+    body: Just use `ERB::Util.html_escape` ?
+    path: lib/slack_notifications.rb
+    created_at: '2025-08-08T16:45:24Z'
+  replies:
+  - id: 2263548003
+    author: kwliang1
+    body: 'TIL: https://github.com/angellist/ipseity/pull/1167/commits/f41e5e672771591d751a317521ee7de1d0d72f69'
+    created_at: '2025-08-08T16:50:15Z'
+  pr_author: kwliang1
+  merged_at: '2025-08-08T17:01:54Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2263559288
+  pr: 1167
+  root:
+    id: 2263559288
+    author: harsohailB
+    body: "```suggestion\r\n  def owners_as_related_entity\r\n```"
+    path: app/models/entity.rb
+    created_at: '2025-08-08T16:56:35Z'
+  replies: []
+  pr_author: kwliang1
+  merged_at: '2025-08-08T17:01:54Z'
+  repo: ipseity
+  has_suggestion_block: true
+- thread_id: 2279519549
+  pr: 1164
+  root:
+    id: 2279519549
+    author: stathis-alexander
+    body: why handler and not `controllers/prophet`? controllers == handlers, no?
+    path: app/handlers/api_handler.rb
+    created_at: '2025-08-15T17:10:42Z'
+  replies:
+  - id: 2279521574
+    author: korbin
+    body: "Controller = HTTP request handler in Rails parlance\r\nHandler = Prophet::Handler\
+      \ in Prophet parlance"
+    created_at: '2025-08-15T17:12:00Z'
+  pr_author: korbin
+  merged_at: '2025-08-16T16:41:41Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2280030946
+  pr: 1175
+  root:
+    id: 2280030946
+    author: harsohailB
+    body: Shouldn't we filter at the API call level rather than in memory?
+    path: app/services/alloy/slack_notification_service.rb
+    created_at: '2025-08-15T23:41:13Z'
+  replies:
+  - id: 2280033070
+    author: kwliang1
+    body: "Absolutely fair point.   I thought this was quicker to implement, and this\
+      \ was admittedly a shortcut because **my answer** is \"idk\".   @abrinsmead\
+      \ is it possible to have a negative filter in the API?  See [here](https://github.com/angellist/ipseity/blob/9df349bf48a47e3666e43904ae995553f809f3cd/lib/flowdash/workflow/kyc_review.rb#L11)\
+      \ can I pass something like `{ 'Stage' !=  'In Progress' }`?\r\n\r\nThis comment\
+      \ also makes me think that I should move the `FD_*` const definitions into `Flowdash::Workflow::KycReview`\
+      \ as well..."
+    created_at: '2025-08-15T23:45:09Z'
+  - id: 2280041093
+    author: harsohailB
+    body: "Ah doesn't seem like it: https://github.com/angellist/flowdash/blob/6fd04a4b8b2190b244ced65d5f0d823c3205d892/app/controllers/api/v1/tasks_controller.rb#L283\r\
+      \n\r\nBut yeah, let's move the consts out"
+    created_at: '2025-08-15T23:58:34Z'
+  pr_author: kwliang1
+  merged_at: '2025-08-18T15:12:48Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2280275639
+  pr: 1176
+  root:
+    id: 2280275639
+    author: edwinzhng
+    body: Only change - everything else was autoformatted
+    path: app/controllers/api/entities_controller.rb
+    created_at: '2025-08-16T06:30:09Z'
+  replies:
+  - id: 2283891252
+    author: ctotheameron
+    body: 'I think we already expose an Api for this here:
+
+      https://github.com/angellist/ipseity/blob/119de9b5218633cbec01006844024b2de3482793/app/controllers/api/entities/verifications_controller.rb#L78
+
+
+      I don''t have enough context on how we''re interacting with ipseity from nova,
+      but my understanding is that it communicates over protobuf, no?'
+    created_at: '2025-08-19T02:17:25Z'
+  - id: 2283955067
+    author: edwinzhng
+    body: "Yeah that's partly what I was explaining in the description:\r\n\r\n> I\
+      \ was originally hoping to use the endpoint at GET /api/entities/verifications/status,\
+      \ but the I couldn't figure out how to get the params to parse properly (seems\
+      \ like the params required a body on the GET request, which isn't supported\
+      \ by our Nova API client).\r\n\r\nBut it's weird because we use a REST endpoint\
+      \ to fetch entities today (but it works because there's a JSON response serialize\
+      \ if the request headers specify `application/json`). I'd add a proper REST\
+      \ API here but there's too much thrash around adding [inter-service communication](https://www.notion.so/Inter-service-Communication-20161e866662806288e2ce3072a95be8?source=copy_link)\
+      \ right now and I don't want to add another thing here because it sounds like\
+      \ our internal NATS services will be set up sometime next quarter"
+    created_at: '2025-08-19T03:12:16Z'
+  - id: 2285975411
+    author: kevinmmarlow
+    body: "Yep, we have a dumb protobuf-over-http setup, where we are manually serializing\
+      \ to/from protobufs.\r\n\r\nThis is a known issue; in Treasury, I'm re-writing\
+      \ the APIs to have an \"internal\" facing REST JSON API.\r\n\r\nThis approach\
+      \ seems fine for now, but I'd add a big disclaimer as to why it's added and\
+      \ where we eventually want to grow into."
+    created_at: '2025-08-19T18:09:45Z'
+  pr_author: edwinzhng
+  merged_at: '2025-08-19T19:15:51Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2283049865
+  pr: 1176
+  root:
+    id: 2283049865
+    author: edwinzhng
+    body: I'm too scared to add typing to this file, if there are strong objections
+      I can try though
+    path: app/controllers/api/entities_controller.rb
+    created_at: '2025-08-18T17:42:31Z'
+  replies: []
+  pr_author: edwinzhng
+  merged_at: '2025-08-19T19:15:51Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2288691818
+  pr: 1177
+  root:
+    id: 2288691818
+    author: stathis-alexander
+    body: Should we just remove the upper bounds completely? Not sure what value they
+      add here.
+    path: entity_api/entity_api.gemspec
+    created_at: '2025-08-20T16:27:17Z'
+  replies: []
+  pr_author: harsohailB
+  merged_at: '2025-08-20T16:40:06Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2317395058
+  pr: 1186
+  root:
+    id: 2317395058
+    author: korbin
+    body: "`Array.wrap(subdivision)`\r\n\r\nand then kill the singular subdivision\
+      \ branch stuff"
+    path: app/services/formatted_addresses/parse_service.rb
+    created_at: '2025-09-02T23:22:13Z'
+  replies: []
+  pr_author: FoodProduct
+  merged_at: '2025-09-03T14:57:17Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2317404791
+  pr: 1186
+  root:
+    id: 2317404791
+    author: korbin
+    body: shorten this method name
+    path: app/services/formatted_addresses/parse_service.rb
+    created_at: '2025-09-02T23:27:01Z'
+  replies:
+  - id: 2317406814
+    author: korbin
+    body: "once you make the above changes, short circuit execution rather than the\
+      \ `if` pyramid:\r\n\r\n\r\n```\r\nreturn s if s.is_a?(String) && normalize(s).include?(shortname)\r\
+      \n\r\nreturn s.code if s.is_a(Subdivision) && (normalize(s.name).include?(shortname)\
+      \ ||  normalize(s.translations['en']).include?(shortname)\r\n````"
+    created_at: '2025-09-02T23:28:51Z'
+  pr_author: FoodProduct
+  merged_at: '2025-09-03T14:57:17Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2320833764
+  pr: 1186
+  root:
+    id: 2320833764
+    author: korbin
+    body: remove this branch - it's unnecessary
+    path: app/services/formatted_addresses/parse_service.rb
+    created_at: '2025-09-04T04:59:05Z'
+  replies:
+  - id: 2323032713
+    author: FoodProduct
+    body: https://github.com/angellist/ipseity/pull/1187
+    created_at: '2025-09-04T18:08:31Z'
+  pr_author: FoodProduct
+  merged_at: '2025-09-03T14:57:17Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2345879579
+  pr: 1191
+  root:
+    id: 2345879579
+    author: thibaut-pro
+    body: Can you implement this spec while we are here?
+    path: spec/models/integrations/jumio/document_verification_response_spec.rb
+    created_at: '2025-09-13T04:13:36Z'
+  replies: []
+  pr_author: app/devin-ai-integration
+  merged_at: '2025-09-19T05:43:25Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2353440551
+  pr: 1192
+  root:
+    id: 2353440551
+    author: stathis-alexander
+    body: A couple of small drive by fixes here, no functional changes.
+    path: app/models/application_record.rb
+    created_at: '2025-09-16T19:24:00Z'
+  replies: []
+  pr_author: stathis-alexander
+  merged_at: '2025-09-17T13:52:51Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2360660658
+  pr: 1193
+  root:
+    id: 2360660658
+    author: FoodProduct
+    body: "I wonder if we should \r\n```suggestion\r\n      if address.country.present?\
+      \ && address.country != 'US'\r\n```"
+    path: lib/integrations/google/info_service.rb
+    created_at: '2025-09-18T18:30:50Z'
+  replies:
+  - id: 2360663609
+    author: edwinzhng
+    body: yeah ill do this to minimize risk
+    created_at: '2025-09-18T18:31:44Z'
+  pr_author: edwinzhng
+  merged_at: '2025-09-18T19:07:40Z'
+  repo: ipseity
+  has_suggestion_block: true
+- thread_id: 2373326510
+  pr: 1196
+  root:
+    id: 2373326510
+    author: harsohailB
+    body: Should we define an enum for this?
+    path: app/models/identity_data/ira.rb
+    created_at: '2025-09-23T20:02:35Z'
+  replies:
+  - id: 2373405080
+    author: kevinmmarlow
+    body: Opted to keep it as a string column, but added enum and validation in the
+      ActiveRecord
+    created_at: '2025-09-23T20:43:02Z'
+  pr_author: kevinmmarlow
+  merged_at: '2025-09-23T21:30:30Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2422083772
+  pr: 1205
+  root:
+    id: 2422083772
+    author: Sheeler
+    body: 'Potentially silly question: I''m not changing any routes or protos, do
+      I still need to bump the version?'
+    path: app/controllers/api/controller.rb
+    created_at: '2025-10-10T21:03:58Z'
+  replies: []
+  pr_author: Sheeler
+  merged_at: '2025-10-10T21:09:36Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2422161522
+  pr: 1205
+  root:
+    id: 2422161522
+    author: stathis-alexander
+    body: "This might be slightly more idiomatic, but definitely not a huge deal.\
+      \ \n\n```suggestion\n        [k, v.to_s]\n```"
+    path: app/controllers/api/controller.rb
+    created_at: '2025-10-10T22:03:01Z'
+  replies: []
+  pr_author: Sheeler
+  merged_at: '2025-10-10T21:09:36Z'
+  repo: ipseity
+  has_suggestion_block: true
+- thread_id: 2453024125
+  pr: 1207
+  root:
+    id: 2453024125
+    author: clogan1
+    body: 'callout: updated this to a `belongs_to` vs. a `has_many`'
+    path: app/models/document_service_document.rb
+    created_at: '2025-10-22T18:39:27Z'
+  replies:
+  - id: 2453560520
+    author: stathis-alexander
+    body: yeah, my mistake
+    created_at: '2025-10-22T23:22:05Z'
+  pr_author: clogan1
+  merged_at: '2025-10-27T23:25:06Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2453559414
+  pr: 1207
+  root:
+    id: 2453559414
+    author: stathis-alexander
+    body: 'Let''s pull this into a service and DRY it up. '
+    path: app/models/encrypted_file.rb
+    created_at: '2025-10-22T23:21:20Z'
+  replies:
+  - id: 2457178790
+    author: clogan1
+    body: '🧠 '
+    created_at: '2025-10-23T20:25:27Z'
+  pr_author: clogan1
+  merged_at: '2025-10-27T23:25:06Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2453562198
+  pr: 1207
+  root:
+    id: 2453562198
+    author: stathis-alexander
+    body: we could maybe just kill this?
+    path: app/models/document_service_document.rb
+    created_at: '2025-10-22T23:23:02Z'
+  replies:
+  - id: 2457184549
+    author: clogan1
+    body: Yeah....was thinking about this on my walk in. I don't think we'll ever
+      have more categories, so it's not necessary.
+    created_at: '2025-10-23T20:26:43Z'
+  pr_author: clogan1
+  merged_at: '2025-10-27T23:25:06Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2458270982
+  pr: 1207
+  root:
+    id: 2458270982
+    author: clogan1
+    body: OOP did not mean to commit this. removing!
+    path: config/environments/development.rb
+    created_at: '2025-10-24T01:22:46Z'
+  replies:
+  - id: 2458280843
+    author: stathis-alexander
+    body: We shouldn't need this. If you need to add this, your dev env needs to be
+      setup
+    created_at: '2025-10-24T01:26:34Z'
+  - id: 2461030865
+    author: clogan1
+    body: Are you able to save files to s3 in local? I couldn't - came across this
+      [thread](https://angellist.slack.com/archives/CA7RA36N6/p1746724821648819) -
+      was burning too much time, so just did this temp hack.
+    created_at: '2025-10-24T15:30:30Z'
+  pr_author: clogan1
+  merged_at: '2025-10-27T23:25:06Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2458276471
+  pr: 1207
+  root:
+    id: 2458276471
+    author: clogan1
+    body: Going to refactor this in the overall helper to dry things up!
+    path: test/helpers/controller_test_helper.rb
+    created_at: '2025-10-24T01:24:51Z'
+  replies: []
+  pr_author: clogan1
+  merged_at: '2025-10-27T23:25:06Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2462287419
+  pr: 1207
+  root:
+    id: 2462287419
+    author: thibaut-pro
+    body: '> Is there anything I''m missing from a security perspective before beginning
+      the migration to Doc Service? Do we need a special tag or something on these
+      documents so that they are skipped from being accessible by Fin? cc: @thibaut-pro
+
+
+      @stathis-alexander already restricted access to these documents from Ipseity:
+      https://github.com/angellist/support-services/pull/3865 (note that the uploader
+      should be `IPSEITY` all uppercase).
+
+
+      In addition to that, we need to stop indexing IPSEITY documents in the document
+      service OpenSearch index so they don''t appear in https://fin.angellist.com/documents.'
+    path: app/services/document_service.rb
+    created_at: '2025-10-25T00:36:37Z'
+  replies:
+  - id: 2462294690
+    author: thibaut-pro
+    body: "Note that I expect we will not be able to download the Ipseity docs from\
+      \ Fin (similar to how access restrictions on Relay prevent downloading Relay\
+      \ docs)\r\n\r\n<img width=\"1626\" height=\"1340\" alt=\"CleanShot 2025-10-24\
+      \ at 17 45 35\" src=\"https://github.com/user-attachments/assets/cd53c4de-64fb-469a-894b-8cc6d94ef807\"\
+      \ />\r\n"
+    created_at: '2025-10-25T00:46:40Z'
+  - id: 2462892764
+    author: stathis-alexander
+    body: 'I flagged this to @clogan1  in slack, but we''ll need to add `NOTO` to
+      the list of allowed services in doc service for ipseity documents. '
+    created_at: '2025-10-25T15:01:06Z'
+  - id: 2466846263
+    author: clogan1
+    body: It's actually going to be a bit more complicated than just Noto, @stathis-alexander.
+      There's also a few places in Venture/CT where we share the contents, related
+      to a legacy way we handled K1 packet storage (code pointer [here](https://github.com/angellist/venture/blob/de1914b69b797abd83c7851f2c55a924fd6cdded/app/services/comptroller/k1_packet_service.rb#L84-L85)).
+      Need to think a bit more on this, and analyze the Venture/CT use cases a bit
+      more.
+    created_at: '2025-10-27T19:31:30Z'
+  - id: 2466857746
+    author: clogan1
+    body: 'PR for skipping indexing: https://github.com/angellist/support-services/pull/3907'
+    created_at: '2025-10-27T19:35:48Z'
+  pr_author: clogan1
+  merged_at: '2025-10-27T23:25:06Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2462289335
+  pr: 1207
+  root:
+    id: 2462289335
+    author: thibaut-pro
+    body: 'CONSIDER: seems like the requesting user should be set to the user performing
+      the action. The uploader can be harcoded to `IPSEITY`'
+    path: app/services/document_service.rb
+    created_at: '2025-10-25T00:37:41Z'
+  replies: []
+  pr_author: clogan1
+  merged_at: '2025-10-27T23:25:06Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2468447732
+  pr: 1210
+  root:
+    id: 2468447732
+    author: kevinmmarlow
+    body: 'I ran `docker compose exec -t app bin/tapioca gem --no-loc --no-doc state_machines`
+      via referencing our `make gem-rbis` command in an attempt to fix sorbet type
+      errors where the `validates` command wasn''t recognized within the state machine''s
+      state block, which had the effect of stripping away all of these comments.
+
+
+      Since this is a generated file, it seems like we''d be okay with this, but let
+      me know if not.'
+    path: sorbet/rbi/gems/state_machines@0.6.0.rbi
+    created_at: '2025-10-28T08:31:55Z'
+  replies: []
+  pr_author: kevinmmarlow
+  merged_at: '2025-11-20T09:47:07Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2471372681
+  pr: 1211
+  root:
+    id: 2471372681
+    author: stathis-alexander
+    body: Should this be `last`?
+    path: app/models/encrypted_file.rb
+    created_at: '2025-10-28T23:50:17Z'
+  replies: []
+  pr_author: clogan1
+  merged_at: '2025-10-29T21:19:58Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2471506267
+  pr: 1211
+  root:
+    id: 2471506267
+    author: stathis-alexander
+    body: 'We should just always pass this if it exists. It''s super cheap. '
+    path: app/models/encrypted_file.rb
+    created_at: '2025-10-29T01:35:24Z'
+  replies:
+  - id: 2474059991
+    author: clogan1
+    body: Fair! Went back and forth on this.
+    created_at: '2025-10-29T16:06:03Z'
+  pr_author: clogan1
+  merged_at: '2025-10-29T21:19:58Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2479058038
+  pr: 1212
+  root:
+    id: 2479058038
+    author: clogan1
+    body: Part of me wants to change the relationship to `has_one` ... I'm not sure
+      of a use case where we'd ever have multiple `document_service_documents`.
+    path: app/models/encrypted_file.rb
+    created_at: '2025-10-30T18:11:15Z'
+  replies:
+  - id: 2479788159
+    author: stathis-alexander
+    body: We can do that but we should add a validation to enforce uniqueness.
+    created_at: '2025-10-30T23:29:27Z'
+  pr_author: clogan1
+  merged_at: '2025-11-13T23:48:46Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2479790119
+  pr: 1212
+  root:
+    id: 2479790119
+    author: stathis-alexander
+    body: Let's just remove this method?
+    path: app/models/encrypted_file.rb
+    created_at: '2025-10-30T23:30:20Z'
+  replies: []
+  pr_author: clogan1
+  merged_at: '2025-11-13T23:48:46Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2479791337
+  pr: 1212
+  root:
+    id: 2479791337
+    author: stathis-alexander
+    body: 'This still relies on the paper clip interface. I''d rather lift this into
+      a method in a service somewhere and take it off the model. '
+    path: app/models/encrypted_file.rb
+    created_at: '2025-10-30T23:30:51Z'
+  replies: []
+  pr_author: clogan1
+  merged_at: '2025-11-13T23:48:46Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2482788021
+  pr: 1212
+  root:
+    id: 2482788021
+    author: clogan1
+    body: 'I was thinking about it a bit more, and I''d rather decouple this PR from
+      my next PR of fully ripping out Paperclip (in which I''ll remove the `file_contents`
+      getter and setter methods). I''d rather be more cautious in the rollout. Let
+      me know your thoughts @stathis-alexander '
+    path: app/models/encrypted_file.rb
+    created_at: '2025-10-31T22:09:11Z'
+  replies: []
+  pr_author: clogan1
+  merged_at: '2025-11-13T23:48:46Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2528282360
+  pr: 1217
+  root:
+    id: 2528282360
+    author: philrhinehart
+    body: '`task_monitor` doesn''t exist in the Dockerfile so this was just broken.
+      Looks like it was broken [here](https://github.com/angellist/ipseity/commit/d1a031319a163620dbfd2816e7445b4f714078f1?diff=split).
+      Probably nobody noticed since it only runs when it is modified and this is rare.
+
+
+      Fixed the task monitor steps below to run using the test image which has everything
+      required'
+    path: .buildkite/pipeline.rb
+    created_at: '2025-11-14T17:08:58Z'
+  replies: []
+  pr_author: philrhinehart
+  merged_at: '2025-11-17T16:59:28Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2528290361
+  pr: 1217
+  root:
+    id: 2528290361
+    author: philrhinehart
+    body: "For now, staging deploy runs, then we deploy to prod. Keeping it simple\
+      \ for now.\r\nWill provide more options later for the staging deploy sequencing/workflows"
+    path: .buildkite/pipeline.rb
+    created_at: '2025-11-14T17:11:49Z'
+  replies: []
+  pr_author: philrhinehart
+  merged_at: '2025-11-17T16:59:28Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2528310122
+  pr: 1217
+  root:
+    id: 2528310122
+    author: philrhinehart
+    body: "Pulled these values from the `.env` file, which might not actually be what\
+      \ we want.\r\nWill work on getting all required env vars populated separately.\r\
+      \n\r\nSide note, this repo stores a bunch of creds in plaintext \U0001F61E ,\
+      \ we need to do a bunch of cleanup"
+    path: config/configtool/staging-us-west-2-hermes/external.hcl
+    created_at: '2025-11-14T17:19:16Z'
+  replies: []
+  pr_author: philrhinehart
+  merged_at: '2025-11-17T16:59:28Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2534425197
+  pr: 1219
+  root:
+    id: 2534425197
+    author: stathis-alexander
+    body: 'Amazing. '
+    path: Dockerfile
+    created_at: '2025-11-17T14:58:43Z'
+  replies: []
+  pr_author: clogan1
+  merged_at: '2025-11-25T21:08:40Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2534431661
+  pr: 1219
+  root:
+    id: 2534431661
+    author: stathis-alexander
+    body: 'Let''s kill these env vars from the config as well. '
+    path: config/environments/staging.rb
+    created_at: '2025-11-17T15:00:31Z'
+  replies: []
+  pr_author: clogan1
+  merged_at: '2025-11-25T21:08:40Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2534458043
+  pr: 1219
+  root:
+    id: 2534458043
+    author: stathis-alexander
+    body: "```suggestion\n# don't error if the correct information is not passed along.\
+      \ \nresult[:encrypted_file] = nil if file_contents.blank? || filename.blank?\n\
+      ```"
+    path: app/controllers/api/tax_forms/files_controller.rb
+    created_at: '2025-11-17T15:07:22Z'
+  replies: []
+  pr_author: clogan1
+  merged_at: '2025-11-25T21:08:40Z'
+  repo: ipseity
+  has_suggestion_block: true
+- thread_id: 2534460091
+  pr: 1219
+  root:
+    id: 2534460091
+    author: stathis-alexander
+    body: this whole block could be rewritten to be clearer
+    path: app/controllers/api/tax_forms/files_controller.rb
+    created_at: '2025-11-17T15:07:56Z'
+  replies: []
+  pr_author: clogan1
+  merged_at: '2025-11-25T21:08:40Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2534462174
+  pr: 1219
+  root:
+    id: 2534462174
+    author: stathis-alexander
+    body: can we add `key` and `content_type` as well?
+    path: app/models/encrypted_file.rb
+    created_at: '2025-11-17T15:08:33Z'
+  replies: []
+  pr_author: clogan1
+  merged_at: '2025-11-25T21:08:40Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2534820344
+  pr: 1217
+  root:
+    id: 2534820344
+    author: amvinnu
+    body: I think we can move this to the infra repo and parameterize it so it can
+      be reused across all other repos that use tonic. Can we done later.
+    path: cdk8s/tonic.ts
+    created_at: '2025-11-17T16:48:36Z'
+  replies:
+  - id: 2534829259
+    author: philrhinehart
+    body: "Agreed, was planning to wait until I've done a few more of these since\
+      \ it looks like they'll all be a bit different.\r\nWill be easier to generalize\
+      \ once we've gone through a few more"
+    created_at: '2025-11-17T16:51:26Z'
+  pr_author: philrhinehart
+  merged_at: '2025-11-17T16:59:28Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2548164773
+  pr: 1227
+  root:
+    id: 2548164773
+    author: stathis-alexander
+    body: "This was really weird:\n* we don't need `bootsnap` in test / development?\
+      \ We don't really even need it in prod? it's not that big of an app. \n* we\
+      \ had it disabled in CI, so why are we building it into our CI test image?"
+    path: Dockerfile
+    created_at: '2025-11-21T00:47:17Z'
+  replies: []
+  pr_author: stathis-alexander
+  merged_at: '2025-11-21T14:45:23Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2548165496
+  pr: 1227
+  root:
+    id: 2548165496
+    author: stathis-alexander
+    body: bunch of env vars we didn't need here, culled the herd
+    path: docker-compose.yml
+    created_at: '2025-11-21T00:47:37Z'
+  replies: []
+  pr_author: stathis-alexander
+  merged_at: '2025-11-21T14:45:23Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2548166650
+  pr: 1227
+  root:
+    id: 2548166650
+    author: stathis-alexander
+    body: 'adopting `.devcontainer` as a way of organizing our development configuration,
+      etc. '
+    path: .devcontainer/.env
+    created_at: '2025-11-21T00:48:03Z'
+  replies: []
+  pr_author: stathis-alexander
+  merged_at: '2025-11-21T14:45:23Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2548237882
+  pr: 1227
+  root:
+    id: 2548237882
+    author: philrhinehart
+    body: 'Separately, we should think about how to get away from committing secrets
+      like this in git. Or at least how to standardize on a solution
+
+
+      Could move all the secrets to a .env.secret that doesn''t get committed and
+      is populated by ''make setup''.
+
+
+      With a bit of love, we can probably get configtool to the point where we can
+      use it for storing the local dev secrets and allow ppl to encrypt/decrypt'
+    path: .devcontainer/.env
+    created_at: '2025-11-21T01:30:36Z'
+  replies:
+  - id: 2548247280
+    author: stathis-alexander
+    body: "Yeah, that's on my radar. I think we should use configtool, I think. [I\
+      \ managed to get it all working pretty well in mailproxy](https://github.com/angellist/mailproxy/blob/main/.devcontainer/dev.just#).\r\
+      \n\r\nFor now, trying to incrementally adopt stuff. "
+    created_at: '2025-11-21T01:35:20Z'
+  - id: 2548251635
+    author: philrhinehart
+    body: 'Yea agreed
+
+
+
+      https://github.com/angellist/mailproxy/blob/325af28ce53e9ab9dac7fbe843483e0202a6d867/.devcontainer/dev.just#L60
+
+
+      I''m surprised this works with the engineer creds. Did we create a separate
+      kms key that everyone can decrypt? Or is that possible for the normal keys?'
+    created_at: '2025-11-21T01:38:57Z'
+  - id: 2548252464
+    author: stathis-alexander
+    body: "> I'm surprised this works with the engineer creds. Did we create a separate\
+      \ kms key that everyone can decrypt? Or is that possible for the normal keys?\r\
+      \n\r\nWe use a local dev config key for the local .hcl file that engineer SSO\
+      \ has access to. "
+    created_at: '2025-11-21T01:39:40Z'
+  - id: 2548253434
+    author: philrhinehart
+    body: Nice
+    created_at: '2025-11-21T01:40:29Z'
+  pr_author: stathis-alexander
+  merged_at: '2025-11-21T14:45:23Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2548242116
+  pr: 1227
+  root:
+    id: 2548242116
+    author: philrhinehart
+    body: Is all this stuff not needed?
+    path: docker/app/docker-entrypoint.sh
+    created_at: '2025-11-21T01:33:04Z'
+  replies:
+  - id: 2548248099
+    author: stathis-alexander
+    body: It's super weird, I don't think so. We need to wait 5 s for the db container
+      to boot before running the app code? Seems unnecessary. Maybe it's for CI? not
+      sure
+    created_at: '2025-11-21T01:35:49Z'
+  pr_author: stathis-alexander
+  merged_at: '2025-11-21T14:45:23Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2550622548
+  pr: 1225
+  root:
+    id: 2550622548
+    author: clogan1
+    body: 'I think we still need this for the rendering in Noto: https://github.com/angellist/noto/blob/2db5b530c9444f679a9be88a7859bdc2a80ca270/app/views/accreditation/united_states/person/assets/show.html.haml#L34-L35'
+    path: entity_api/definitions/entity_api/messages/accreditation/united_states/verifications/acts_like_person/assets.proto
+    created_at: '2025-11-21T18:24:51Z'
+  replies: []
+  pr_author: stathis-alexander
+  merged_at: '2025-12-01T14:40:46Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2550623312
+  pr: 1225
+  root:
+    id: 2550623312
+    author: clogan1
+    body: 'Same comment as above re: Noto.'
+    path: entity_api/lib/entity_api/accreditation/united_states/verifications/acts_like_person/assets.rb
+    created_at: '2025-11-21T18:25:13Z'
+  replies: []
+  pr_author: stathis-alexander
+  merged_at: '2025-12-01T14:40:46Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2570466363
+  pr: 1233
+  root:
+    id: 2570466363
+    author: kevinmmarlow
+    body: "Pretty bad bug fix here. We were not filtering the signatory update by\
+      \ person when getting the company investor role, which means other entity type\
+      \ updates would overwrite the company investor role's fields when the signatory\
+      \ data was updated.\r\n\r\nThis isn't being hit today because of the ordering\
+      \ on Venture, but it needs to be fixed here."
+    path: app/services/entities/kyc_fill_service.rb
+    created_at: '2025-11-28T04:49:50Z'
+  replies: []
+  pr_author: kevinmmarlow
+  merged_at: '2025-12-03T07:18:01Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2600036621
+  pr: 1237
+  root:
+    id: 2600036621
+    author: philrhinehart
+    body: Should we set `angellist.com` here?
+    path: lib/dev_tools/tonic/generator.rb
+    created_at: '2025-12-08T20:32:31Z'
+  replies: []
+  pr_author: amvinnu
+  merged_at: '2025-12-08T22:59:01Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2600053815
+  pr: 1237
+  root:
+    id: 2600053815
+    author: philrhinehart
+    body: 'Wonder if we should include these so staging more closely mirrors prod
+      behavior by default.
+
+
+      Side note: Longer term, I think we need to actually extract feature flags into
+      a separate service that is shared among all services and env aware, so it''s
+      easy to manage flags for rolling out functionality even if it span multiple
+      svcs. Doing this in each app db seems like a bad pattern. And trying to use
+      tonic restores to sync FFs across envs won''t work well'
+    path: lib/dev_tools/tonic/ipseity_generator.rb
+    created_at: '2025-12-08T20:38:33Z'
+  replies:
+  - id: 2600403551
+    author: amvinnu
+    body: These don't seem to be used - I don't see model classes referencing this
+      table.
+    created_at: '2025-12-08T22:49:57Z'
+  - id: 2600406100
+    author: philrhinehart
+    body: Flipper is the rails feature flag library we use, so i don't think it would
+      be referenced by any of our custom models
+    created_at: '2025-12-08T22:51:14Z'
+  pr_author: amvinnu
+  merged_at: '2025-12-08T22:59:01Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2600059800
+  pr: 1237
+  root:
+    id: 2600059800
+    author: philrhinehart
+    body: Curious if we actually need this in staging? I'm assuming staging won't
+      have the ability to decrypt these
+    path: lib/dev_tools/tonic/ipseity_generator.rb
+    created_at: '2025-12-08T20:41:07Z'
+  replies:
+  - id: 2600398097
+    author: amvinnu
+    body: not really sure, the FK traversal was bringing in a lot more files - so
+      added a explicit 1% to restrict this.
+    created_at: '2025-12-08T22:47:09Z'
+  pr_author: amvinnu
+  merged_at: '2025-12-08T22:59:01Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2623564807
+  pr: 1249
+  root:
+    id: 2623564807
+    author: stathis-alexander
+    body: Enum?
+    path: entity_prophet_api/lib/entity_prophet_api/errors.rb
+    created_at: '2025-12-16T14:41:25Z'
+  replies: []
+  pr_author: kevinmmarlow
+  merged_at: '2025-12-17T03:14:08Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2623566861
+  pr: 1249
+  root:
+    id: 2623566861
+    author: stathis-alexander
+    body: 'Was this merged or missed? Either way 🪓 '
+    path: entity_api/lib/entity_api/entity.rb
+    created_at: '2025-12-16T14:41:58Z'
+  replies:
+  - id: 2625204642
+    author: kevinmmarlow
+    body: missed!
+    created_at: '2025-12-17T00:41:15Z'
+  pr_author: kevinmmarlow
+  merged_at: '2025-12-17T03:14:08Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2623569025
+  pr: 1249
+  root:
+    id: 2623569025
+    author: stathis-alexander
+    body: "The convention in rails would be to use `ApplicationHandler`. \n\n```suggestion\n\
+      class ApplicationHandler < Prophet::Handler\n```"
+    path: app/handlers/base_handler.rb
+    created_at: '2025-12-16T14:42:32Z'
+  replies:
+  - id: 2625205683
+    author: kevinmmarlow
+    body: But this isn't a rails convention, it's prophet in ruby? Are we changing
+      it in Treasury too?
+    created_at: '2025-12-17T00:42:00Z'
+  pr_author: kevinmmarlow
+  merged_at: '2025-12-17T03:14:08Z'
+  repo: ipseity
+  has_suggestion_block: true
+- thread_id: 2623572578
+  pr: 1249
+  root:
+    id: 2623572578
+    author: stathis-alexander
+    body: 'Should the order here be flipped? maybe it doesn''t matter. not sure what
+      the super here does. '
+    path: app/handlers/base_handler.rb
+    created_at: '2025-12-16T14:43:26Z'
+  replies:
+  - id: 2625353829
+    author: kevinmmarlow
+    body: "- `super(request)` initializes `@request`, `@params`, and sets `@response\
+      \ = nil`\r\n- This line `@response = T.let(nil, T.nilable(T::Struct))` re-declares\
+      \ `@response` with Sorbet type information"
+    created_at: '2025-12-17T02:16:20Z'
+  pr_author: kevinmmarlow
+  merged_at: '2025-12-17T03:14:08Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2623576785
+  pr: 1249
+  root:
+    id: 2623576785
+    author: stathis-alexander
+    body: 'this is messy, I''d rather handle this in the conversion itself. '
+    path: app/handlers/base_handler.rb
+    created_at: '2025-12-16T14:44:31Z'
+  replies: []
+  pr_author: kevinmmarlow
+  merged_at: '2025-12-17T03:14:08Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2624190676
+  pr: 1250
+  root:
+    id: 2624190676
+    author: philrhinehart
+    body: 'I don''t think this value will actually be used, since we run staging in
+      the "production" mode (i.e. RAILS_ENV=production).
+
+
+      I think you''ll need to set this in the production.rb conditionally '
+    path: config/environments/staging.rb
+    created_at: '2025-12-16T17:44:26Z'
+  replies:
+  - id: 2624223049
+    author: amvinnu
+    body: good catch. Added a conditional check.
+    created_at: '2025-12-16T17:56:33Z'
+  pr_author: amvinnu
+  merged_at: '2025-12-16T18:18:30Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2624231259
+  pr: 1250
+  root:
+    id: 2624231259
+    author: philrhinehart
+    body: 'nit: This should work fine, but might be slightly cleaner to make this
+      explicit (e.g. add a new env var like `SUPPORT_UNENCRYPTED_DATA`)
+
+
+      ```
+
+      config.active_record.encryption.support_unencrypted_data = ENV["SUPPORT_UNENCRYPTED_DATA"]
+      == "true"
+
+      ```'
+    path: config/environments/production.rb
+    created_at: '2025-12-16T17:59:46Z'
+  replies: []
+  pr_author: amvinnu
+  merged_at: '2025-12-16T18:18:30Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2625884440
+  pr: 1252
+  root:
+    id: 2625884440
+    author: kevinmmarlow
+    body: Bumping the version on the entity API since we are introducing the shared
+      entity create service.
+    path: entity_api/lib/entity_api/version.rb
+    created_at: '2025-12-17T07:18:40Z'
+  replies: []
+  pr_author: kevinmmarlow
+  merged_at: '2025-12-23T04:10:42Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2625896194
+  pr: 1252
+  root:
+    id: 2625896194
+    author: kevinmmarlow
+    body: '`with_error_handling` focused on ActiveRecord + Prophet domain errors.
+      We handle invalid entity type outside of this, since it is unique to the entity
+      route'
+    path: app/handlers/entities_handler.rb
+    created_at: '2025-12-17T07:23:38Z'
+  replies: []
+  pr_author: kevinmmarlow
+  merged_at: '2025-12-23T04:10:42Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2625996500
+  pr: 1252
+  root:
+    id: 2625996500
+    author: kwliang1
+    body: '❤️ '
+    path: app/handlers/entities_handler.rb
+    created_at: '2025-12-17T08:02:30Z'
+  replies: []
+  pr_author: kevinmmarlow
+  merged_at: '2025-12-23T04:10:42Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2654872344
+  pr: 1263
+  root:
+    id: 2654872344
+    author: kevinmmarlow
+    body: 'New API endpoint.
+
+
+      Opting to break away from old Ipseity patterns that use dedicated closing flow
+      API routes in favor of more CRUD-like API routes for create/update entity.
+
+
+      I _am_ allowing identity data + address updates to pass through this API. Open
+      to feedback on this.'
+    path: app/handlers/entities_handler.rb
+    created_at: '2025-12-31T06:17:59Z'
+  replies:
+  - id: 2655789447
+    author: pradyuman
+    body: I prefer this pattern -- `ipseity` shouldn't really care about workflows
+      of the consumers that are using it.
+    created_at: '2025-12-31T19:08:59Z'
+  pr_author: kevinmmarlow
+  merged_at: '2026-01-05T02:25:35Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2654872643
+  pr: 1263
+  root:
+    id: 2654872643
+    author: kevinmmarlow
+    body: '@pradyuman tbd if we need to capture disclosures and wealth sources. Waiting
+      on Aryeh and Bischer'
+    path: app/handlers/entities_handler.rb
+    created_at: '2025-12-31T06:18:23Z'
+  replies: []
+  pr_author: kevinmmarlow
+  merged_at: '2026-01-05T02:25:35Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2654873541
+  pr: 1263
+  root:
+    id: 2654873541
+    author: kevinmmarlow
+    body: At a minimum, I think we'll want to preserve locking entities once submitted,
+      meaning you cannot edit existing fields (but you can add data for missing fields).
+    path: app/services/entities/update_service.rb
+    created_at: '2025-12-31T06:19:06Z'
+  replies: []
+  pr_author: kevinmmarlow
+  merged_at: '2026-01-05T02:25:35Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2654874295
+  pr: 1263
+  root:
+    id: 2654874295
+    author: kevinmmarlow
+    body: 'Note: We don''t actually have a good locking mechanism for individual or
+      IRA entities.'
+    path: app/services/entities/update_service.rb
+    created_at: '2025-12-31T06:19:48Z'
+  replies: []
+  pr_author: kevinmmarlow
+  merged_at: '2026-01-05T02:25:35Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2661909828
+  pr: 1262
+  root:
+    id: 2661909828
+    author: stathis-alexander
+    body: This feels like a generally universal ruleset for the most part, should
+      we lift this into a common config or something?
+    path: lib/dev_tools/tonic/generator.rb
+    created_at: '2026-01-05T15:34:15Z'
+  replies:
+  - id: 2662688955
+    author: amvinnu
+    body: yeah, will move the whole file to shared_venture_tooling repo.
+    created_at: '2026-01-05T20:17:27Z'
+  pr_author: amvinnu
+  merged_at: '2026-01-05T20:17:32Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2683768958
+  pr: 1274
+  root:
+    id: 2683768958
+    author: edwinzhng
+    body: Should we do some kind of validation here that the metadata shape is expected
+      given the role type? e.g. role type signatory -> parse title, otherwise do something
+      else (no-op for now)
+    path: app/handlers/roles_handler.rb
+    created_at: '2026-01-12T20:14:09Z'
+  replies: []
+  pr_author: kevinmmarlow
+  merged_at: '2026-01-13T04:43:09Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2705970105
+  pr: 1279
+  root:
+    id: 2705970105
+    author: stathis-alexander
+    body: We can delete all this codesaces stuff
+    path: Makefile
+    created_at: '2026-01-19T20:14:04Z'
+  replies:
+  - id: 2706226008
+    author: amahon
+    body: roger
+    created_at: '2026-01-19T22:27:01Z'
+  - id: 2706227803
+    author: amahon
+    body: done
+    created_at: '2026-01-19T22:28:16Z'
+  pr_author: amahon
+  merged_at: '2026-01-20T17:51:46Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2706239122
+  pr: 1278
+  root:
+    id: 2706239122
+    author: amahon
+    body: Thoughts on file saving being in transaction? From a correctness POV, it
+      seems preferable -- from a "holding a transaction open while some external service
+      takes a while to return perspective", it seems questionable.
+    path: app/services/entities/kyc_fill_service.rb
+    created_at: '2026-01-19T22:36:43Z'
+  replies:
+  - id: 2709919628
+    author: fivetentaylor
+    body: "Yeah this happens a lot in our codebase, I think it's probably fine here...\
+      \ but the more robust way we've been handling things like this is to put them\
+      \ in a job. The job gets created in the transaction (or rolls back if the transaction\
+      \ fails) and then durably retries until success after the transaction commits.\r\
+      \n\r\nThe thing that makes your's more tricky is a job wouldn't work because\
+      \ you're saving these large documents from memory that are coming in over the\
+      \ api \U0001F914 "
+    created_at: '2026-01-20T20:12:38Z'
+  - id: 2709948047
+    author: stathis-alexander
+    body: "> but the more robust way we've been handling things like this is to put\
+      \ them in a job. The job gets created in the transaction (or rolls back if the\
+      \ transaction fails) and then durably retries until success after the transaction\
+      \ commits.\r\n\r\nThis only works if the job queue is a table in the same db\
+      \ as your biz logic. It also means we need to build out some observability on\
+      \ whether these jobs complete. \r\n\r\nI think these are simple enough we don't\
+      \ need to worry about it now. Do we know how long these take to complete?"
+    created_at: '2026-01-20T20:22:48Z'
+  - id: 2710500548
+    author: amahon
+    body: "Okay -- I reworked the approach here to 1. upload files to document service\
+      \ in venture codebase 2. send file ids from venture to ipseity and 3. associate\
+      \ files to trust in ipseity\r\n\r\nThis set of changes should make the upload\
+      \ while in transaction concern moot. Going to resolve this for now, but please\
+      \ reopen if concerns remain!"
+    created_at: '2026-01-21T00:10:18Z'
+  pr_author: amahon
+  merged_at: '2026-01-23T18:04:26Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2709854017
+  pr: 1281
+  root:
+    id: 2709854017
+    author: clogan1
+    body: "`content_type` on `EncryptedFile` is actually weird, and not what you would\
+      \ expect. It's actually more of a category, but only applicable in a handful\
+      \ of cases (code [here](CONTENT_TYPES)).\r\n\r\nWhen a document gets uploaded\
+      \ to Document Service, we do store the content type in the `systemTags`, but\
+      \ it you want to save an API call, I've gotten away with just deriving from\
+      \ the file name (code [here](https://github.com/angellist/ipseity/blob/ec15ba1e03e8ab7b4d8244ac310a53a19e68e757/app/services/document_service.rb#L80-L83)).\r\
+      \n\r\nHere's an example of pulling the `systemTags` in Venture (code [here](https://github.com/angellist/venture/blob/a9d46e51c747ba27b02bc931027c7b9540ee77ca/app/services/venture/documents/pdf_converter_service.rb#L48-L49))"
+    path: app/handlers/encrypted_files_handler.rb
+    created_at: '2026-01-20T19:53:01Z'
+  replies:
+  - id: 2710588567
+    author: kevinmmarlow
+    body: Oh thanks for this context! I'll dig in and see what we'd do for Nova
+    created_at: '2026-01-21T01:02:11Z'
+  - id: 2711363807
+    author: kevinmmarlow
+    body: Updated! I renamed it to `encrypted_file_category` to be very explicit.
+      Also make version optional with a lookup for default version
+    created_at: '2026-01-21T07:51:03Z'
+  pr_author: kevinmmarlow
+  merged_at: '2026-01-22T04:54:03Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2715175512
+  pr: 1278
+  root:
+    id: 2715175512
+    author: harsohailB
+    body: 'nit: I would move this to here: https://github.com/angellist/ipseity/blob/0d783905ea01c5b688e39c569dafde1397930657/app/services/encrypted_files/create_service.rb#L4
+      so it is at the top level. Seems like the `DocumentService` doesn''t create
+      encrypted files, it just interacts with the doc service'
+    path: app/services/document_service.rb
+    created_at: '2026-01-22T03:33:07Z'
+  replies:
+  - id: 2718595125
+    author: amahon
+    body: makes sense! moved!
+    created_at: '2026-01-22T20:53:15Z'
+  - id: 2718611127
+    author: amahon
+    body: It actually looks like @kevinmmarlow introduced a method in that service
+      that does the same thing as this method. Adopted that method and dropped the
+      one I introduced.
+    created_at: '2026-01-22T20:59:19Z'
+  pr_author: amahon
+  merged_at: '2026-01-23T18:04:26Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2738620364
+  pr: 1288
+  root:
+    id: 2738620364
+    author: stathis-alexander
+    body: "I want to make sure that before we roll this out it's working properly.\
+      \ Basically, I don't want to get into a firedrill of an engineer needing to\
+      \ be able to access this console and not being able to get into and suddenly\
+      \ it becoming a problem. \n\nWe'll need to roll out the entire system and handle\
+      \ comms and messaging. \n\nCan we deploy three here:\n1. old\n2. read only\n\
+      3. write\n\nWhile we're rolling out?\n\nThat way, eng workflows aren't impacted\
+      \ until we're ready to rip the cord. "
+    path: cdk8s/main.ts
+    created_at: '2026-01-28T21:09:38Z'
+  replies:
+  - id: 2739145485
+    author: amvinnu
+    body: "Makes sense, added a legacy command line option to create old/legacy consoles.\r\
+      \n\r\nFor ipseity, we will default to the new read-only console to get people\
+      \ used to this new flow, but they can pass in the legacy option to create the\
+      \ old password based console. \r\n\r\nThe CLI behavior for other apps won't\
+      \ change, we will incrementally add them to the new behavior as we create the\
+      \ new consoles in those apps."
+    created_at: '2026-01-29T00:05:54Z'
+  pr_author: amvinnu
+  merged_at: '2026-01-29T19:45:14Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2738622162
+  pr: 1288
+  root:
+    id: 2738622162
+    author: stathis-alexander
+    body: "we prefer this form over the `self.` form. \n\n```suggestion\nclass <<\
+      \ self\n  def generate_token(host:, port:, user:)\n    generator = Aws::RDS::AuthTokenGenerator.new(\n\
+      \      credentials: Aws::CredentialProviderChain.new.resolve\n    )\n    generator.auth_token(\n\
+      \      region: ENV.fetch('AWS_REGION', 'us-west-2'),\n      endpoint: \"#{host}:#{port}\"\
+      ,\n      user_name: user\n    )\n  end\nend\n```"
+    path: config/initializers/rds_iam_authentication.rb
+    created_at: '2026-01-28T21:10:09Z'
+  replies:
+  - id: 2739146220
+    author: amvinnu
+    body: addressed
+    created_at: '2026-01-29T00:06:17Z'
+  pr_author: amvinnu
+  merged_at: '2026-01-29T19:45:14Z'
+  repo: ipseity
+  has_suggestion_block: true
+- thread_id: 2738651418
+  pr: 1288
+  root:
+    id: 2738651418
+    author: stathis-alexander
+    body: "This is pretty gnarly. It's cleaner to use a prepend module to overwrite\
+      \ the `PostgreSQLAdapater#new_client` method: https://github.com/rails/rails/blob/main/activerecord/lib/active_record/connection_adapters/postgresql_adapter.rb#L57\n\
+      \nIt'd look something like this:\n```ruby\n# Allow postgreSQL clients to be\
+      \ created with \nmodule PostgreSQLNewClientPatch\n   def new_client(conn_params)\n\
+      \     # ... modify conn_params and inject AWS IAM based auth code\n     super(conn_params)\n\
+      \   end\nend\nActiveRecord::ConnectionAdapters::PostgreSQLAdapter.singleton_class.prepend(PostgreSQLNewClientPatch)\n\
+      ```\n\nAlternatively, we could still monkey patch the `PG::Connection` class,\
+      \ but instead of using `class << PG::Connection`, we can use the `prepend` on\
+      \ the `singleton_class` approach.  "
+    path: config/initializers/rds_iam_authentication.rb
+    created_at: '2026-01-28T21:18:40Z'
+  replies:
+  - id: 2739147565
+    author: amvinnu
+    body: Much cleaner, thanks for the suggestion. Changed to this structure and verified
+      on staging.
+    created_at: '2026-01-29T00:06:56Z'
+  pr_author: amvinnu
+  merged_at: '2026-01-29T19:45:14Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2738655969
+  pr: 1288
+  root:
+    id: 2738655969
+    author: stathis-alexander
+    body: Ideally we could avoid pinning the major, I think the latest is v2 or 3?
+    path: Gemfile
+    created_at: '2026-01-28T21:19:37Z'
+  replies:
+  - id: 2739150921
+    author: amvinnu
+    body: The latest version is still 1.3xx, I think we pin it for now in case a major
+      version brings in breaking changes. I saw other references to aws-sdk-rds in
+      the codebase use 1.
+    created_at: '2026-01-29T00:08:43Z'
+  pr_author: amvinnu
+  merged_at: '2026-01-29T19:45:14Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2738675192
+  pr: 1288
+  root:
+    id: 2738675192
+    author: philrhinehart
+    body: Is this something we could eventually pull out into a shared package/gem
+      so we don't need to copy into all the repos?
+    path: config/initializers/rds_iam_authentication.rb
+    created_at: '2026-01-28T21:23:58Z'
+  replies:
+  - id: 2739152008
+    author: amvinnu
+    body: makes sense, I will do this as a follow-up when I add consoles in the venture
+      app.
+    created_at: '2026-01-29T00:09:18Z'
+  pr_author: amvinnu
+  merged_at: '2026-01-29T19:45:14Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2739184244
+  pr: 1288
+  root:
+    id: 2739184244
+    author: stathis-alexander
+    body: '```suggestion
+
+      return if ENV[''CONSOLE_MODE''].nil?
+
+      return if ENV[''IPSEITY_DATABASE_IAM_AUTH''] != ''true''
+
+      return if !Rails.env.production? && !Rails.env.staging?
+
+      ```'
+    path: config/initializers/rds_iam_authentication.rb
+    created_at: '2026-01-29T00:18:58Z'
+  replies: []
+  pr_author: amvinnu
+  merged_at: '2026-01-29T19:45:14Z'
+  repo: ipseity
+  has_suggestion_block: true
+- thread_id: 2739185089
+  pr: 1288
+  root:
+    id: 2739185089
+    author: stathis-alexander
+    body: Is `Rails.env.staging?` the right check?
+    path: config/initializers/rds_iam_authentication.rb
+    created_at: '2026-01-29T00:19:10Z'
+  replies:
+  - id: 2742681193
+    author: amvinnu
+    body: 'you are right, I keep forgetting that staging uses Rails.env.production '
+    created_at: '2026-01-29T17:11:24Z'
+  pr_author: amvinnu
+  merged_at: '2026-01-29T19:45:14Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2739196306
+  pr: 1288
+  root:
+    id: 2739196306
+    author: stathis-alexander
+    body: "I think we should not be opinionated about the port?\n\n\n```suggestion\n\
+      \    port = conn_params[:port]\n```"
+    path: config/initializers/rds_iam_authentication.rb
+    created_at: '2026-01-29T00:22:08Z'
+  replies: []
+  pr_author: amvinnu
+  merged_at: '2026-01-29T19:45:14Z'
+  repo: ipseity
+  has_suggestion_block: true
+- thread_id: 2739204381
+  pr: 1288
+  root:
+    id: 2739204381
+    author: stathis-alexander
+    body: Should this logger statement live in `generate_token`?
+    path: config/initializers/rds_iam_authentication.rb
+    created_at: '2026-01-29T00:24:57Z'
+  replies: []
+  pr_author: amvinnu
+  merged_at: '2026-01-29T19:45:14Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2741930785
+  pr: 1289
+  root:
+    id: 2741930785
+    author: kevinmmarlow
+    body: '@amahon drive by fix
+
+
+      When `address_verification_document_ids` isn''t provided in the input, Ruby
+      returns `nil` from the hash lookup and passes that `nil` explicitly to the method—which
+      bypasses the default `[]` parameter. The downstream `create_batch_from_document_service!`
+      method has strict Sorbet typing that requires an actual array, so CI fails with
+      a type error even though it works locally where runtime checks are more relaxed.'
+    path: app/services/entities/ownership/fill_service.rb
+    created_at: '2026-01-29T14:27:02Z'
+  replies:
+  - id: 2741934016
+    author: kevinmmarlow
+    body: 'The error surfaced here
+
+
+      https://buildkite.com/angellist-venture/ipseity/builds/3908#019c0a15-071e-42a1-bbf2-9cc32f25a000'
+    created_at: '2026-01-29T14:27:34Z'
+  - id: 2742569462
+    author: amahon
+    body: thanks @kevinmmarlow  - sorry bout that.. I should have caught it.
+    created_at: '2026-01-29T16:44:16Z'
+  pr_author: kevinmmarlow
+  merged_at: '2026-01-30T01:21:12Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2742285494
+  pr: 1278
+  root:
+    id: 2742285494
+    author: stathis-alexander
+    body: These comments don't add much value, imo?
+    path: entity_api/lib/entity_api/encrypted_file_content_types.rb
+    created_at: '2026-01-29T15:41:33Z'
+  replies: []
+  pr_author: amahon
+  merged_at: '2026-01-23T18:04:26Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2742972046
+  pr: 1288
+  root:
+    id: 2742972046
+    author: amvinnu
+    body: cc @stathis-alexander need this to set port correctly on the conn_params
+      in the IAM path. This was not needed with the pg gem since it has its own default
+      port handling (5432),  but the IAM token generation code was getting the port
+      from conn_params before pg applied its default.
+    path: config/database.yml
+    created_at: '2026-01-29T18:29:52Z'
+  replies:
+  - id: 2742987117
+    author: stathis-alexander
+    body: got it, makes sense. I think this is the better fix
+    created_at: '2026-01-29T18:34:34Z'
+  pr_author: amvinnu
+  merged_at: '2026-01-29T19:45:14Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2744904007
+  pr: 1282
+  root:
+    id: 2744904007
+    author: kevinmmarlow
+    body: 'This creates a **circular destroy dependency**:
+
+      1. `EncryptedFile` has `has_many :document_service_documents, dependent: :destroy`
+
+      2. `DocumentServiceDocument` has `belongs_to :encrypted_file, dependent: :destroy`
+
+
+      When we try to destroy the `EncryptedFile`, it tries to destroy the `DocumentServiceDocument`,
+      which then tries to destroy the `EncryptedFile` back (which is already being
+      destroyed), causing the failure.
+
+
+      The `dependent: :destroy` on a `belongs_to` is almost never correct, so I''m
+      removing it.
+
+
+      The `dependent: :destroy` on `has_many` (in `EncryptedFile`) is correct and
+      sufficient - it will delete all associated `DocumentServiceDocument` records
+      when we delete an `EncryptedFile`. The child record shouldn''t try to delete
+      its parent.
+
+
+      cc: @thibaut-pro @clogan1 mind confirming my assumption above? I hit the issue
+      when testing my destroy path locally.'
+    path: app/models/document_service_document.rb
+    created_at: '2026-01-30T06:50:55Z'
+  replies: []
+  pr_author: kevinmmarlow
+  merged_at: '2026-01-30T07:52:32Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2756798357
+  pr: 1290
+  root:
+    id: 2756798357
+    author: kwliang1
+    body: huh, no T.let here? I thought that was enforced by sorbet... (obv non blocking)
+    path: app/services/entities/finalize_service.rb
+    created_at: '2026-02-03T01:58:34Z'
+  replies:
+  - id: 2757083169
+    author: kevinmmarlow
+    body: Not sure if it's a newer version of sorbet, but sorbet can and should be
+      able to infer types when they are obvious. We'd use let if there's an array
+      that starts as empty or when a value is nilable with nil as the default
+    created_at: '2026-02-03T04:04:22Z'
+  pr_author: kevinmmarlow
+  merged_at: '2026-02-03T05:41:43Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2756805190
+  pr: 1290
+  root:
+    id: 2756805190
+    author: kwliang1
+    body: 'damn. we still use good job here? 😞 '
+    path: sorbet/rbi/shims/good_job_delay.rbi
+    created_at: '2026-02-03T02:00:24Z'
+  replies:
+  - id: 2757065057
+    author: kevinmmarlow
+    body: 'Yes'
+    created_at: '2026-02-03T03:56:05Z'
+  pr_author: kevinmmarlow
+  merged_at: '2026-02-03T05:41:43Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2756807304
+  pr: 1290
+  root:
+    id: 2756807304
+    author: kwliang1
+    body: Are there more skews we need to worry about here?
+    path: spec/handlers/entities_handler_spec.rb
+    created_at: '2026-02-03T02:01:03Z'
+  replies: []
+  pr_author: kevinmmarlow
+  merged_at: '2026-02-03T05:41:43Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2756809183
+  pr: 1290
+  root:
+    id: 2756809183
+    author: kwliang1
+    body: do we have a plan to monitor the status of these? flowdash perhaps?
+    path: sorbet/rbi/shims/good_job_delay.rbi
+    created_at: '2026-02-03T02:01:39Z'
+  replies:
+  - id: 2757064744
+    author: kevinmmarlow
+    body: "Do you mean to monitor automations or just KYC review in general?\r\n\r\
+      \nWhen the Treasury CustomerAccount is created, [a rake task](https://github.com/angellist/treasury/blob/main/lib/tasks/flowdash.rake#L2-L5)\
+      \ will create the Flowdash task within 5 minutes.\r\n\r\nThe Treasury dashboard\
+      \ surfaces identity checks status"
+    created_at: '2026-02-03T03:55:55Z'
+  - id: 2757393233
+    author: kwliang1
+    body: I meant a nova-specific process to monitor accounts while they are in the
+      manual review process.   This may end up being something that @pradyuman and
+      I iron out with ops.
+    created_at: '2026-02-03T06:18:23Z'
+  pr_author: kevinmmarlow
+  merged_at: '2026-02-03T05:41:43Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2761350620
+  pr: 1294
+  root:
+    id: 2761350620
+    author: bob-hg
+    body: 'This looks good, especially with: https://github.com/angellist/ipseity/blob/80d5944d5cbcc2e25f97ea48afb364adf6d0bcb9/config/routes.rb#L256
+
+
+      Wanted to bring up this though, when Josh did something similar he added an
+      inflection, not sure if that is necessary here: https://github.com/angellist/ipseity/commit/232edb098fa3fce35c862ff9137b97f4804aec8c#diff-7b1eb2bf7bad2e1bd4d9341af9a529a6e8e0e4140ff61d9484ad6160e6c3924b'
+    path: entity_api/lib/entity_api/tax_forms/w8_imy.rb
+    created_at: '2026-02-03T22:50:52Z'
+  replies: []
+  pr_author: kbillemeyerAL
+  merged_at: '2026-02-04T16:05:17Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2776043453
+  pr: 1300
+  root:
+    id: 2776043453
+    author: kwliang1
+    body: moving this logic to the API contract coming in a followup PR.
+    path: app/models/identity_data/prohibited_jurisdiction_screening.rb
+    created_at: '2026-02-06T21:15:58Z'
+  replies: []
+  pr_author: kwliang1
+  merged_at: '2026-02-06T22:17:34Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2776045753
+  pr: 1300
+  root:
+    id: 2776045753
+    author: kwliang1
+    body: temporary for pre-existing records.   There are only 6.   I will clean them
+      up after the stack of PRs is deployed.
+    path: app/services/alloy/journey_application/body_service.rb
+    created_at: '2026-02-06T21:16:50Z'
+  replies: []
+  pr_author: kwliang1
+  merged_at: '2026-02-06T22:17:34Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2784091681
+  pr: 1303
+  root:
+    id: 2784091681
+    author: philrhinehart
+    body: 'Would you expect to see changes in the cdk8s output from this?
+
+      Not seeing any PR comment from the deploy-diff job, so wondering if the infra
+      pkg needs a bump or something?'
+    path: cdk8s/main.ts
+    created_at: '2026-02-09T18:50:11Z'
+  replies:
+  - id: 2784095983
+    author: philrhinehart
+    body: Ahh nevermind, I think the infra PR just needs to be merged first, then
+      bumped here
+    created_at: '2026-02-09T18:51:12Z'
+  - id: 2786210365
+    author: amvinnu
+    body: yes, there is a diff. It doesn't show up here as I didn't bump the infra
+      version in package.json in this commit. Once the infra PR is merged, I will
+      bump the version from that commit here.
+    created_at: '2026-02-10T07:18:18Z'
+  pr_author: amvinnu
+  merged_at: '2026-02-10T22:57:25Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2785771828
+  pr: 1305
+  root:
+    id: 2785771828
+    author: kevinmmarlow
+    body: Somewhere along the way, people started putting h1 instead of h2. Fixed
+      it to be consistent
+    path: entity_api/CHANGELOG.md
+    created_at: '2026-02-10T04:45:54Z'
+  replies:
+  - id: 2786256625
+    author: kwliang1
+    body: '🦅 '
+    created_at: '2026-02-10T07:29:37Z'
+  pr_author: kevinmmarlow
+  merged_at: '2026-02-10T08:29:49Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2796484754
+  pr: 1307
+  root:
+    id: 2796484754
+    author: kwliang1
+    body: '👍 '
+    path: db/migrate/20260212000000_add_trustee_company_registration_number_to_identity_data_trusts.rb
+    created_at: '2026-02-12T02:33:13Z'
+  replies: []
+  pr_author: kevinmmarlow
+  merged_at: '2026-02-12T13:02:25Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2850012620
+  pr: 1335
+  root:
+    id: 2850012620
+    author: harsohailB
+    body: What about other columns i.e. birthdate
+    path: app/models/identity_data/person.rb
+    created_at: '2026-02-24T23:19:16Z'
+  replies:
+  - id: 2850219252
+    author: fivetentaylor
+    body: Yeah totally, I wasn't necessarily trying to be exhaustive just yet, but
+      I can do a better job of trying to capture everything off the bat
+    created_at: '2026-02-25T00:39:28Z'
+  pr_author: fivetentaylor
+  merged_at: '2026-02-27T21:12:58Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2866109866
+  pr: 1335
+  root:
+    id: 2866109866
+    author: dcetlin
+    body: Question - why did u choose hooks? I feel like AngelList convention is to
+      avoid hooks. I have no issues jw
+    path: app/models/concerns/kyc_aml_status/base_concern.rb
+    created_at: '2026-02-27T20:36:24Z'
+  replies:
+  - id: 2866217437
+    author: fivetentaylor
+    body: I think if we get to having a state machine for entities then we should
+      use that, but currently there just didn't seem like a clear entry point to instrument
+      events, so I went with the hook 🤷  Happy to go the other way if people have
+      strong opinions
+    created_at: '2026-02-27T21:09:13Z'
+  pr_author: fivetentaylor
+  merged_at: '2026-02-27T21:12:58Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2866123843
+  pr: 1335
+  root:
+    id: 2866123843
+    author: kwliang1
+    body: whoa
+    path: app/models/ipseity_event.rb
+    created_at: '2026-02-27T20:40:18Z'
+  replies: []
+  pr_author: fivetentaylor
+  merged_at: '2026-02-27T21:12:58Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2866125032
+  pr: 1335
+  root:
+    id: 2866125032
+    author: dcetlin
+    body: what is the design behind this? How do entity ancestral chains work?
+    path: app/models/concerns/kyc_aml_status/base_concern.rb
+    created_at: '2026-02-27T20:40:39Z'
+  replies:
+  - id: 2866222741
+    author: fivetentaylor
+    body: It's pretty simple, like `company -> control person`. The `related_entities`
+      only point up to parents, not down to children. The idea is to just emit events
+      for any related entity so that consumers can be alerted for the related entity
+      they care about.
+    created_at: '2026-02-27T21:10:41Z'
+  pr_author: fivetentaylor
+  merged_at: '2026-02-27T21:12:58Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2866126194
+  pr: 1335
+  root:
+    id: 2866126194
+    author: kwliang1
+    body: is there a better way to prevent drift here?
+    path: entity_prophet_api/lib/entity_prophet_api/messages/ipseity_events/entity_lifecycle_event.rb
+    created_at: '2026-02-27T20:41:04Z'
+  replies: []
+  pr_author: fivetentaylor
+  merged_at: '2026-02-27T21:12:58Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2866128844
+  pr: 1335
+  root:
+    id: 2866128844
+    author: dcetlin
+    body: 'Lol that we have unknown as a valid type, but could have unknown even beyond
+      - supertiny nit: invalid entity_type'
+    path: app/models/concerns/kyc_aml_status/base_concern.rb
+    created_at: '2026-02-27T20:41:53Z'
+  replies:
+  - id: 2866221756
+    author: kwliang1
+    body: 'fwiw, I don''t think we''re explicitly support unknown now cc @kevinmmarlow '
+    created_at: '2026-02-27T21:10:23Z'
+  pr_author: fivetentaylor
+  merged_at: '2026-02-27T21:12:58Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2866176983
+  pr: 1335
+  root:
+    id: 2866176983
+    author: dcetlin
+    body: nice
+    path: app/models/ipseity_event.rb
+    created_at: '2026-02-27T20:56:31Z'
+  replies: []
+  pr_author: fivetentaylor
+  merged_at: '2026-02-27T21:12:58Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2866178893
+  pr: 1335
+  root:
+    id: 2866178893
+    author: dcetlin
+    body: Do we use this in treasury too?
+    path: app/models/ipseity_event.rb
+    created_at: '2026-02-27T20:57:08Z'
+  replies:
+  - id: 2866224586
+    author: fivetentaylor
+    body: No I can add it, but it seemed more important here because of using the
+      hooks. This way we can quickly turn if off if needed when doing OC
+    created_at: '2026-02-27T21:11:17Z'
+  pr_author: fivetentaylor
+  merged_at: '2026-02-27T21:12:58Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2873929376
+  pr: 1351
+  root:
+    id: 2873929376
+    author: bob-hg
+    body: 'For posterity after chatting about locally: this is specially needed because
+      this is generating via `::EntityAPI::Messages::TaxInformation.new(params)`,
+      so a Message directly, not using automatic resource to message conversion framework
+      that is used for most everything else.'
+    path: app/services/tax_information_service.rb
+    created_at: '2026-03-02T18:08:58Z'
+  replies: []
+  pr_author: joshg47
+  merged_at: '2026-03-02T18:29:17Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2884296599
+  pr: 1354
+  root:
+    id: 2884296599
+    author: bob-hg
+    body: 'Idle style thoughts: `partner_entity_type_from_identity_data` could get
+      its own `partner_name` if not passed in. And `entity_type` could be queried
+      before the `if/else` tree and avoid the deeper nesting in this `else`, assuming
+      no performance concerns.'
+    path: app/services/tax_information_service.rb
+    created_at: '2026-03-04T15:01:45Z'
+  replies: []
+  pr_author: joshg47
+  merged_at: '2026-03-05T15:22:14Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2925309609
+  pr: 1358
+  root:
+    id: 2925309609
+    author: philrhinehart
+    body: Might be worth adding a TODO in the configs for migrating to a read-only
+      docs svc when we have it
+    path: config/configtool/staging-us-west-2-hermes/config-readonly.yaml
+    created_at: '2026-03-12T15:04:48Z'
+  replies: []
+  pr_author: amvinnu
+  merged_at: '2026-03-12T16:35:49Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2925318309
+  pr: 1358
+  root:
+    id: 2925318309
+    author: philrhinehart
+    body: 'nit: If we dont think we''ll need overrides would be nice to just leave
+      out the complexity.'
+    path: config/configtool/staging-us-west-2-hermes/config-readonly-overrides.yaml
+    created_at: '2026-03-12T15:05:56Z'
+  replies:
+  - id: 2925835968
+    author: amvinnu
+    body: Right, these exist mainly as an escape hatch to provide configs that offer
+      higher level access in consoles for humans vs. script-runner configs for bots.  I
+      expect that we will converge to a single config over time (next several weeks).
+    created_at: '2026-03-12T16:23:42Z'
+  pr_author: amvinnu
+  merged_at: '2026-03-12T16:35:49Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2995966529
+  pr: 1389
+  root:
+    id: 2995966529
+    author: fivetentaylor
+    body: I'm noticing that when the token comes in `nil` from the network you'd set
+      it `nil` here. Is that what you want? Would it make sense then to have the default
+      value be `nil` ?
+    path: app/services/action_items/create_service.rb
+    created_at: '2026-03-26T15:50:41Z'
+  replies:
+  - id: 2995971423
+    author: harsohailB
+    body: Ah yeah I guess we can nil here and let the DB do the defaulting
+    created_at: '2026-03-26T15:51:26Z'
+  pr_author: harsohailB
+  merged_at: '2026-03-26T16:01:01Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2995977752
+  pr: 1389
+  root:
+    id: 2995977752
+    author: fivetentaylor
+    body: ah so it is always set, then in the methods that accept `idempotency_token`
+      do you want to set it to `SecureRandom.uuid` if it's `nil` or just let the db
+      do it?
+    path: db/migrate/20260326151303_add_idempotency_token_to_action_items.rb
+    created_at: '2026-03-26T15:52:28Z'
+  replies:
+  - id: 2995985176
+    author: harsohailB
+    body: Yep updated
+    created_at: '2026-03-26T15:53:39Z'
+  pr_author: harsohailB
+  merged_at: '2026-03-26T16:01:01Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 2996509890
+  pr: 1391
+  root:
+    id: 2996509890
+    author: dcetlin
+    body: '<img width="1369" height="334" alt="Image" src="https://github.com/user-attachments/assets/881b1a82-358b-48d1-b3db-eaceb2098d27"
+      />
+
+
+      https://api.rubyonrails.org/v7.1.0/classes/ActiveRecord/Migration.html?utm_source=chatgpt.com'
+    path: db/migrate/20260326164643_add_idempotency_token_to_encrypted_files.rb
+    created_at: '2026-03-26T17:20:30Z'
+  replies:
+  - id: 2996512465
+    author: dcetlin
+    body: not sure if this is required.. just fyi
+    created_at: '2026-03-26T17:20:55Z'
+  pr_author: harsohailB
+  merged_at: '2026-03-26T17:15:10Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 3002071853
+  pr: 1394
+  root:
+    id: 3002071853
+    author: sf8193
+    body: 'don''t like this but it matches rest of repo '
+    path: app/models/ipseity_event.rb
+    created_at: '2026-03-27T16:47:49Z'
+  replies: []
+  pr_author: sf8193
+  merged_at: '2026-03-30T18:46:27Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 3002222381
+  pr: 1394
+  root:
+    id: 3002222381
+    author: sf8193
+    body: jetstream persists, and no real additional complexity overhead (on our side)
+    path: app/services/ipseity_events/publish_service.rb
+    created_at: '2026-03-27T17:16:46Z'
+  replies: []
+  pr_author: sf8193
+  merged_at: '2026-03-30T18:46:27Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 3007431410
+  pr: 1394
+  root:
+    id: 3007431410
+    author: kevinmmarlow
+    body: When would this throw?
+    path: app/services/ipseity_events/publish_service.rb
+    created_at: '2026-03-30T04:22:07Z'
+  replies:
+  - id: 3007433875
+    author: kevinmmarlow
+    body: Also, is this a singleton instance we are accessing? If not, should it be?
+    created_at: '2026-03-30T04:23:18Z'
+  - id: 3011415120
+    author: sf8193
+    body: It is — prophet memoizes it via @server_connection ||= establish_connection.
+      The ArgumentError is raised when NATS config (host/port) isn't set at all, which
+      (should) only happen in test/dev
+    created_at: '2026-03-30T18:11:27Z'
+  pr_author: sf8193
+  merged_at: '2026-03-30T18:46:27Z'
+  repo: ipseity
+  has_suggestion_block: false
+- thread_id: 3007431888
+  pr: 1394
+  root:
+    id: 3007431888
+    author: kevinmmarlow
+    body: Wouldn't we want to throw hard in production if this fails?
+    path: app/services/ipseity_events/publish_service.rb
+    created_at: '2026-03-30T04:22:23Z'
+  replies:
+  - id: 3011409743
+    author: sf8193
+    body: 'yes, i planned on coming back to clean this up after we deployed and i
+      made sure the infra was correctly stood up '
+    created_at: '2026-03-30T18:10:14Z'
+  pr_author: sf8193
+  merged_at: '2026-03-30T18:46:27Z'
+  repo: ipseity
+  has_suggestion_block: false
